@@ -83,7 +83,7 @@ export async function registerRoutes(
 
   // Public Routes
   app.get(api.public.status.path, async (req, res) => {
-    const username = req.params.username;
+    const username = req.params.username as string;
     const user = await storage.getUserByUsername(username);
     if (!user) {
       return res.status(404).json({ message: "User not found" });

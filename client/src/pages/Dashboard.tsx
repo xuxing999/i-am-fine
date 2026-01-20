@@ -91,7 +91,7 @@ export default function Dashboard() {
               </DrawerTrigger>
               <DrawerContent className="z-[100]">
                 <div className="mx-auto w-full max-w-sm p-6 space-y-6">
-                  <DrawerHeader className="px-0">
+                  <DrawerHeader className="px-0 text-center">
                     <DrawerTitle className="text-2xl font-black">設定選單</DrawerTitle>
                     <DrawerDescription className="text-lg">請選擇您要進行的操作</DrawerDescription>
                   </DrawerHeader>
@@ -125,7 +125,7 @@ export default function Dashboard() {
                   </div>
                   <DrawerFooter className="px-0 pt-4">
                     <DrawerClose asChild>
-                      <Button variant="secondary" size="lg" className="py-8 text-xl font-bold rounded-2xl">關閉</Button>
+                      <Button variant="secondary" size="lg" className="py-8 text-xl font-bold rounded-2xl w-full">關閉</Button>
                     </DrawerClose>
                   </DrawerFooter>
                 </div>
