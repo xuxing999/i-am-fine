@@ -6,11 +6,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
   const { data: user, isLoading: isLoadingUser } = useUser();
@@ -71,31 +76,61 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-white pb-32">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
+      <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-6 py-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <ShieldCheck className="h-10 w-10 text-primary" />
             <h1 className="text-3xl font-bold text-gray-800">{user.displayName}</h1>
           </div>
           <div className="flex gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <Drawer>
+              <DrawerTrigger asChild>
                 <button className="p-3 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
                   <Settings className="h-8 w-8" />
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => setLocation("/settings")} className="py-3 text-lg cursor-pointer">
-                  <Settings className="mr-2 h-5 w-5" /> 設定家人電話
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleShare} className="py-3 text-lg cursor-pointer">
-                  <Share2 className="mr-2 h-5 w-5" /> 分享狀態給家人
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => logout()} className="py-3 text-lg text-red-600 cursor-pointer">
-                  <LogOut className="mr-2 h-5 w-5" /> 登出
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </DrawerTrigger>
+              <DrawerContent className="z-[100]">
+                <div className="mx-auto w-full max-w-sm p-6 space-y-6">
+                  <DrawerHeader className="px-0">
+                    <DrawerTitle className="text-2xl font-black">設定選單</DrawerTitle>
+                    <DrawerDescription className="text-lg">請選擇您要進行的操作</DrawerDescription>
+                  </DrawerHeader>
+                  <div className="grid gap-4">
+                    <Button 
+                      variant="outline" 
+                      size="lg" 
+                      className="py-8 text-xl font-bold rounded-2xl justify-start gap-4"
+                      onClick={() => {
+                        setLocation("/settings");
+                      }}
+                    >
+                      <Settings className="h-6 w-6" /> 設定家人電話
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="lg" 
+                      className="py-8 text-xl font-bold rounded-2xl justify-start gap-4"
+                      onClick={handleShare}
+                    >
+                      <Share2 className="h-6 w-6" /> 分享狀態給家人
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="lg" 
+                      className="py-8 text-xl font-bold rounded-2xl justify-start gap-4 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => logout()}
+                    >
+                      <LogOut className="h-6 w-6" /> 登出
+                    </Button>
+                  </div>
+                  <DrawerFooter className="px-0 pt-4">
+                    <DrawerClose asChild>
+                      <Button variant="secondary" size="lg" className="py-8 text-xl font-bold rounded-2xl">關閉</Button>
+                    </DrawerClose>
+                  </DrawerFooter>
+                </div>
+              </DrawerContent>
+            </Drawer>
           </div>
         </div>
       </header>

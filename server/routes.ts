@@ -64,7 +64,7 @@ export async function registerRoutes(
     
     try {
       const input = api.user.updateProfile.input.parse(req.body);
-      const updatedUser = await storage.updateUser(req.user!.id, input);
+      const updatedUser = await storage.updateUser((req.user as any).id, input);
       res.json(updatedUser);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -77,13 +77,14 @@ export async function registerRoutes(
   app.post(api.user.checkIn.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     
-    const updatedUser = await storage.checkIn(req.user!.id);
+    const updatedUser = await storage.checkIn((req.user as any).id);
     res.json({ success: true, timestamp: updatedUser.lastCheckInAt!.toISOString() });
   });
 
   // Public Routes
   app.get(api.public.status.path, async (req, res) => {
-    const user = await storage.getUserByUsername(req.params.username);
+    const username = req.params.username;
+    const user = await storage.getUserByUsername(username);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

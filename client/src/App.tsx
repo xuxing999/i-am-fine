@@ -7,7 +7,7 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import PublicStatus from "@/pages/PublicStatus";
-import Settings from "@/pages/Settings";
+import SettingsPage from "@/pages/Settings";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
@@ -47,7 +47,7 @@ function Router() {
         <ProtectedRoute component={Dashboard} />
       </Route>
       <Route path="/settings">
-        <ProtectedRoute component={Settings} />
+        <ProtectedRoute component={SettingsPage} />
       </Route>
       
       {/* 404 */}
