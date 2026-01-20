@@ -81,6 +81,9 @@ export default function Dashboard() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => setLocation("/settings")} className="py-3 text-lg cursor-pointer">
+                  <Settings className="mr-2 h-5 w-5" /> 設定家人電話
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleShare} className="py-3 text-lg cursor-pointer">
                   <Share2 className="mr-2 h-5 w-5" /> 分享狀態給家人
                 </DropdownMenuItem>
@@ -152,41 +155,53 @@ export default function Dashboard() {
         </div>
 
         {/* Emergency Contacts - Quick Call Style */}
-        {(user.contact1Name || user.contact2Name) && (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-black text-gray-800 text-center">找家人聊聊</h3>
-            <div className="grid grid-cols-1 gap-4">
-              {user.contact1Name && (
-                <a 
-                  href={`tel:${user.contact1Phone}`}
-                  className="flex items-center justify-between bg-white p-6 rounded-3xl border-4 border-gray-100 shadow-sm hover:border-primary/50 active:bg-gray-50 transition-all group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                      <Phone className="w-8 h-8" />
-                    </div>
-                    <span className="text-3xl font-bold text-gray-800">{user.contact1Name}</span>
-                  </div>
-                  <span className="text-xl font-medium text-gray-400">撥打電話</span>
-                </a>
-              )}
-              {user.contact2Name && (
-                <a 
-                  href={`tel:${user.contact2Phone}`}
-                  className="flex items-center justify-between bg-white p-6 rounded-3xl border-4 border-gray-100 shadow-sm hover:border-primary/50 active:bg-gray-50 transition-all group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                      <Phone className="w-8 h-8" />
-                    </div>
-                    <span className="text-3xl font-bold text-gray-800">{user.contact2Name}</span>
-                  </div>
-                  <span className="text-xl font-medium text-gray-400">撥打電話</span>
-                </a>
-              )}
-            </div>
+        <div className="space-y-6">
+          <h3 className="text-2xl font-black text-gray-800 text-center">找家人聊聊</h3>
+          <div className="grid grid-cols-1 gap-4">
+            <a 
+              href={user.contact1Phone ? `tel:${user.contact1Phone}` : "#"}
+              onClick={(e) => {
+                if (!user.contact1Phone) {
+                  e.preventDefault();
+                  toast({
+                    title: "溫馨提示",
+                    description: "請先到設定頁面填寫家人的聯絡電話喔！",
+                  });
+                }
+              }}
+              className="flex items-center justify-between bg-white p-6 rounded-3xl border-4 border-gray-100 shadow-sm hover:border-primary/50 active:bg-gray-50 transition-all group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                  <Phone className="w-8 h-8" />
+                </div>
+                <span className="text-3xl font-bold text-gray-800">{user.contact1Name || "聯絡人 1"}</span>
+              </div>
+              <span className="text-xl font-medium text-gray-400">撥打電話</span>
+            </a>
+            <a 
+              href={user.contact2Phone ? `tel:${user.contact2Phone}` : "#"}
+              onClick={(e) => {
+                if (!user.contact2Phone) {
+                  e.preventDefault();
+                  toast({
+                    title: "溫馨提示",
+                    description: "請先到設定頁面填寫家人的聯絡電話喔！",
+                  });
+                }
+              }}
+              className="flex items-center justify-between bg-white p-6 rounded-3xl border-4 border-gray-100 shadow-sm hover:border-primary/50 active:bg-gray-50 transition-all group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                  <Phone className="w-8 h-8" />
+                </div>
+                <span className="text-3xl font-bold text-gray-800">{user.contact2Name || "聯絡人 2"}</span>
+              </div>
+              <span className="text-xl font-medium text-gray-400">撥打電話</span>
+            </a>
           </div>
-        )}
+        </div>
       </main>
     </div>
   );
