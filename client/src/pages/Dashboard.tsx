@@ -29,8 +29,10 @@ export default function Dashboard() {
   }
 
   const lastCheckIn = user.lastCheckInAt ? new Date(user.lastCheckInAt) : null;
-  const hoursSinceLastCheckIn = lastCheckIn ? differenceInHours(new Date(), lastCheckIn) : 999;
-  const isSafe = hoursSinceLastCheckIn < 24;
+  // 用於測試的變數：逾時時間（秒）
+  const TIMEOUT_SECONDS = 30;
+  const secondsSinceLastCheckIn = lastCheckIn ? (new Date().getTime() - lastCheckIn.getTime()) / 1000 : 999999;
+  const isSafe = secondsSinceLastCheckIn < TIMEOUT_SECONDS;
 
   const handleShare = () => {
     const url = `${window.location.origin}/status/${user.username}`;

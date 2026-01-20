@@ -31,31 +31,32 @@ export default function PublicStatus() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-12">
+    <div className={`min-h-screen transition-colors duration-500 px-4 py-12 ${!status.isSafe ? "bg-red-500" : "bg-gradient-to-b from-gray-50 to-gray-100"}`}>
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-md mx-auto space-y-8"
       >
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{status.displayName}</h1>
-          <p className="text-lg text-gray-500">目前的平安狀態</p>
+          <h1 className={`text-3xl font-bold mb-2 ${!status.isSafe ? "text-white" : "text-gray-900"}`}>{status.displayName}</h1>
+          <p className={`text-lg ${!status.isSafe ? "text-red-100" : "text-gray-500"}`}>目前的平安狀態</p>
         </div>
 
         <StatusCard 
           isSafe={status.isSafe} 
           lastCheckInAt={status.lastCheckInAt}
           className="shadow-2xl"
+          isPublic={true}
         />
 
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center space-y-4">
-          <p className="text-gray-600">
-            這是 <span className="font-bold text-gray-900">{status.displayName}</span> 的即時狀態頁面。
+        <div className={`rounded-2xl p-6 shadow-sm border text-center space-y-4 ${!status.isSafe ? "bg-red-600 border-red-400 text-white" : "bg-white border-gray-200 text-gray-600"}`}>
+          <p>
+            這是 <span className={`font-bold ${!status.isSafe ? "text-white" : "text-gray-900"}`}>{status.displayName}</span> 的即時狀態頁面。
             <br />
             您可以將此頁面加入書籤以便隨時查看。
           </p>
-          <div className="pt-4 border-t">
-            <Link href="/" className="inline-flex items-center text-primary font-medium hover:underline gap-1">
+          <div className={`pt-4 border-t ${!status.isSafe ? "border-red-400" : "border-gray-100"}`}>
+            <Link href="/" className={`inline-flex items-center font-medium hover:underline gap-1 ${!status.isSafe ? "text-red-100" : "text-primary"}`}>
               我也要使用平安守護 <ExternalLink className="w-4 h-4" />
             </Link>
           </div>

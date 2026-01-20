@@ -88,11 +88,13 @@ export async function registerRoutes(
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Logic for "isSafe": check-in within last 24 hours
+    // Logic for "isSafe": check-in within last 30 seconds for testing
+    // 用於測試的變數：逾時時間（秒）
+    const TIMEOUT_SECONDS = 30; 
     const now = new Date();
     const lastCheckIn = user.lastCheckInAt ? new Date(user.lastCheckInAt) : null;
     const isSafe = lastCheckIn 
-      ? (now.getTime() - lastCheckIn.getTime()) < 24 * 60 * 60 * 1000 
+      ? (now.getTime() - lastCheckIn.getTime()) < TIMEOUT_SECONDS * 1000 
       : false;
 
     res.json({
