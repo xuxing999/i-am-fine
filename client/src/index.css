@@ -44,7 +44,7 @@
   }
   body {
     @apply bg-background text-foreground antialiased font-sans;
-    font-size: 18px; /* Slightly larger base font for elderly users */
+    font-size: 22px; /* 增加 20%：從 18px 改為約 22px */
   }
   
   h1, h2, h3, h4 {
