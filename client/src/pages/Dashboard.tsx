@@ -36,7 +36,7 @@ export default function Dashboard() {
     if (!user?.lastCheckInAt) return;
 
     // 用於測試的變數：逾時時間（秒）
-    const TIMEOUT_SECONDS = 30;
+    const TIMEOUT_SECONDS = 30; // 測試用，正式環境應為 86400 (24小時)
     const lastCheckIn = new Date(user.lastCheckInAt).getTime();
 
     const timer = setInterval(() => {
