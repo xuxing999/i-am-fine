@@ -51,6 +51,6 @@ export function usePublicStatus(username: string) {
       return api.public.status.responses[200].parse(await res.json());
     },
     enabled: !!username,
-    refetchInterval: 60000, // Refresh every minute
+    refetchInterval: 5000, // 每 5 秒自動重新獲取數據 (Auto-polling)
   });
 }

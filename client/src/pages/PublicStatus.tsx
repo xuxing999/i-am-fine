@@ -3,11 +3,24 @@ import { StatusCard } from "@/components/StatusCard";
 import { Loader2, ShieldQuestion, ExternalLink } from "lucide-react";
 import { useRoute, Link } from "wouter";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { queryClient } from "@/lib/queryClient";
 
 export default function PublicStatus() {
   const [, params] = useRoute("/status/:username");
   const username = params?.username || "";
   const { data: status, isLoading, error } = usePublicStatus(username);
+
+  // 每 5 秒自動重新獲取數據
+  useEffect(() => {
+    if (!username) return;
+    
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/status", username] });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [username]);
 
   if (isLoading) {
     return (
