@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { differenceInHours } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useEffect, useState } from "react";
 
 export default function Dashboard() {
   const { data: user, isLoading: isLoadingUser } = useUser();
@@ -13,6 +14,24 @@ export default function Dashboard() {
   const { mutate: checkIn, isPending: isCheckingIn } = useCheckIn();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const [localIsSafe, setLocalIsSafe] = useState(true);
+
+  // 每 100 毫秒進行一次本地精準比對
+  useEffect(() => {
+    if (!user?.lastCheckInAt) return;
+
+    // 用於測試的變數：逾時時間（秒）
+    const TIMEOUT_SECONDS = 30;
+    const lastCheckIn = new Date(user.lastCheckInAt).getTime();
+
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const secondsPassed = (now - lastCheckIn) / 1000;
+      setLocalIsSafe(secondsPassed < TIMEOUT_SECONDS);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [user?.lastCheckInAt]);
 
   if (isLoadingUser) {
     return (
@@ -28,22 +47,7 @@ export default function Dashboard() {
     return null;
   }
 
-  const lastCheckIn = user.lastCheckInAt ? new Date(user.lastCheckInAt) : null;
-  // 用於測試的變數：逾時時間（秒）
-  const TIMEOUT_SECONDS = 30;
-  const secondsSinceLastCheckIn = lastCheckIn ? (new Date().getTime() - lastCheckIn.getTime()) / 1000 : 999999;
-  const isSafe = secondsSinceLastCheckIn < TIMEOUT_SECONDS;
-
-  const handleShare = () => {
-    const url = `${window.location.origin}/status/${user.username}`;
-    navigator.clipboard.writeText(url).then(() => {
-      toast({
-        title: "連結已複製",
-        description: "請將連結貼上並傳送給家人",
-      });
-    });
-  };
-
+  // Status Display
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
@@ -66,7 +70,7 @@ export default function Dashboard() {
       <main className="max-w-md mx-auto px-4 pt-8 space-y-8">
         {/* Status Display */}
         <StatusCard 
-          isSafe={isSafe} 
+          isSafe={localIsSafe} 
           lastCheckInAt={user.lastCheckInAt} 
           className="w-full"
         />
@@ -108,7 +112,15 @@ export default function Dashboard() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 gap-4">
           <button
-            onClick={handleShare}
+            onClick={() => {
+              const url = `${window.location.origin}/status/${user.username}`;
+              navigator.clipboard.writeText(url).then(() => {
+                toast({
+                  title: "連結已複製",
+                  description: "請將連結貼上並傳送給家人",
+                });
+              });
+            }}
             className="flex items-center justify-center gap-3 bg-white p-5 rounded-2xl border-2 border-gray-100 shadow-sm hover:border-primary/50 hover:bg-primary/5 active:bg-primary/10 transition-colors"
           >
             <Share2 className="w-6 h-6 text-primary" />
