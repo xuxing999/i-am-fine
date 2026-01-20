@@ -1,4 +1,4 @@
-import { useUser } from "@/hooks/use-auth";
+import { useUser, useLogout } from "@/hooks/use-auth";
 import { useCheckIn } from "@/hooks/use-check-in";
 import { Loader2, LogOut, Share2, ShieldCheck, HeartPulse, Phone, Settings, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
