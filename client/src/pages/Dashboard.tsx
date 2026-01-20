@@ -104,7 +104,7 @@ export default function Dashboard() {
                         setLocation("/settings");
                       }}
                     >
-                      <Settings className="h-6 w-6" /> 設定家人電話
+                      <Settings className="h-6 w-6" /> <span>設定家人電話</span>
                     </Button>
                     <Button 
                       variant="outline" 
@@ -112,7 +112,7 @@ export default function Dashboard() {
                       className="py-8 text-xl font-bold rounded-2xl justify-start gap-4"
                       onClick={handleShare}
                     >
-                      <Share2 className="h-6 w-6" /> 分享狀態給家人
+                      <Share2 className="h-6 w-6" /> <span>分享狀態給家人</span>
                     </Button>
                     <Button 
                       variant="ghost" 
@@ -120,7 +120,7 @@ export default function Dashboard() {
                       className="py-8 text-xl font-bold rounded-2xl justify-start gap-4 text-red-600 hover:text-red-700 hover:bg-red-50"
                       onClick={() => logout()}
                     >
-                      <LogOut className="h-6 w-6" /> 登出
+                      <LogOut className="h-6 w-6" /> <span>登出</span>
                     </Button>
                   </div>
                   <DrawerFooter className="px-0 pt-4">
