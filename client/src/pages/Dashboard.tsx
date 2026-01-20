@@ -1,7 +1,6 @@
-import { useUser, useLogout } from "@/hooks/use-auth";
+import { useUser } from "@/hooks/use-auth";
 import { useCheckIn } from "@/hooks/use-check-in";
-import { StatusCard } from "@/components/StatusCard";
-import { Loader2, LogOut, Share2, ShieldCheck, HeartPulse, Phone, Settings } from "lucide-react";
+import { Loader2, LogOut, Share2, ShieldCheck, HeartPulse, Phone, Settings, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -20,6 +19,12 @@ export default function Dashboard() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [localIsSafe, setLocalIsSafe] = useState(true);
+  const [isIOS, setIsIOS] = useState(false);
+
+  useEffect(() => {
+    const ua = window.navigator.userAgent;
+    setIsIOS(/iPad|iPhone|iPod/.test(ua));
+  }, []);
 
   // 每 100 毫秒進行一次本地精準比對
   useEffect(() => {
@@ -63,9 +68,8 @@ export default function Dashboard() {
 
   const isAlreadyCheckedInToday = localIsSafe;
 
-  // Status Display
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-white pb-32">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-6 flex justify-between items-center">
@@ -201,6 +205,21 @@ export default function Dashboard() {
               <span className="text-xl font-medium text-gray-400">撥打電話</span>
             </a>
           </div>
+        </div>
+
+        {/* PWA Install Guide */}
+        <div className="bg-green-50 p-8 rounded-3xl border-2 border-green-100 space-y-4">
+          <div className="flex items-center gap-3 text-green-700">
+            <Download className="w-8 h-8" />
+            <h3 className="text-2xl font-black">把應用放在桌面</h3>
+          </div>
+          <p className="text-xl text-green-800 font-medium leading-relaxed">
+            {isIOS ? (
+              <span>點擊下方的「分享」按鈕 <span className="inline-block px-2 border rounded">分享</span>，再選擇「加入主畫面」，報平安更快速！</span>
+            ) : (
+              <span>點擊瀏覽器右上角的選單，選擇「安裝應用程式」，之後在桌面就能直接開啟囉！</span>
+            )}
+          </p>
         </div>
       </main>
     </div>
