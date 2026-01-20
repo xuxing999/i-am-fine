@@ -18,7 +18,7 @@ export default function PublicStatus() {
     if (!status?.lastCheckInAt) return;
 
     // 用於測試的變數：逾時時間（秒）
-    const TIMEOUT_SECONDS = 30;
+    const TIMEOUT_SECONDS = 30; // 測試用，正式環境應為 86400 (24小時)
     const lastCheckIn = new Date(status.lastCheckInAt).getTime();
 
     const timer = setInterval(() => {
