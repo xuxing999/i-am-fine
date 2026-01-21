@@ -1,10 +1,66 @@
+# Dependencies
 node_modules
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
 dist
-.DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+dist-ssr
+*.local
+build
+.cache
+
+# Environment variables (敏感資訊)
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
+
+# IDE / Editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+
+# Testing
+coverage
+*.lcov
+.nyc_output
+
+# Temporary files
+*.tmp
+*.temp
+*.tar.gz
 *.pdf
+
+# Vercel
+.vercel
+
+# Replit
+.replit
+replit.nix
+
+# Server
+server/public
+
+# Vite
+vite.config.ts.*
+
+# PWA generated files (dev環境自動生成)
+client/dev-dist/
+dev-dist/
+
+# Database migration files (可選 - 如果不想分享內部 SQL)
+# fix-user-data.sql
+# supabase-cleanup.sql
+# test-rls-policies.sql

@@ -1,16 +1,15 @@
 import { useUser } from "@/hooks/use-auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertUserSchema, api } from "@shared/routes";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 import { useLocation } from "wouter";
 import { z } from "zod";
+import { supabase } from "@/lib/supabase";
 
 const settingsSchema = z.object({
   contact1Name: z.string().min(1, "請輸入聯絡人姓名"),
@@ -25,6 +24,7 @@ export default function Settings() {
   const { data: user } = useUser();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
   const form = useForm<SettingsForm>({
     resolver: zodResolver(settingsSchema),
@@ -38,11 +38,23 @@ export default function Settings() {
 
   const mutation = useMutation({
     mutationFn: async (values: SettingsForm) => {
-      const res = await apiRequest("PUT", api.user.updateProfile.path, values);
-      return res.json();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("未登入");
+
+      const { error } = await supabase
+        .from('users')
+        .update({
+          contact1_name: values.contact1Name,
+          contact1_phone: values.contact1Phone,
+          contact2_name: values.contact2Name || null,
+          contact2_phone: values.contact2Phone || null,
+        })
+        .eq('id', session.user.id);
+
+      if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
       toast({
         title: "設定已儲存",
         description: "您的家人聯絡資訊已成功更新。",

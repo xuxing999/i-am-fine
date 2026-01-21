@@ -1,24 +1,99 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, type InsertUser, type User } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { supabase } from "@/lib/supabase";
 
-// GET /api/user - Check current session
+// Frontend User type (camelCase)
+export type User = {
+  id: string;
+  username: string;
+  displayName: string;
+  contact1Name?: string | null;
+  contact1Phone?: string | null;
+  contact2Name?: string | null;
+  contact2Phone?: string | null;
+  lastCheckInAt?: Date | null;
+  createdAt?: Date | null;
+};
+
+// Insert User type for registration
+export type InsertUser = {
+  username: string;
+  password: string;
+  displayName: string;
+  contact1Name?: string;
+  contact1Phone?: string;
+  contact2Name?: string;
+  contact2Phone?: string;
+};
+
+// Database User type (snake_case) - matches Supabase schema
+type DbUser = {
+  id: string;
+  username: string;
+  display_name: string;
+  contact1_name: string | null;
+  contact1_phone: string | null;
+  contact2_name: string | null;
+  contact2_phone: string | null;
+  last_check_in: string | null;
+};
+
+// Convert database user (snake_case) to frontend user (camelCase)
+function dbUserToUser(dbUser: DbUser): User {
+  return {
+    id: dbUser.id,
+    username: dbUser.username,
+    displayName: dbUser.display_name,
+    contact1Name: dbUser.contact1_name,
+    contact1Phone: dbUser.contact1_phone,
+    contact2Name: dbUser.contact2_name,
+    contact2Phone: dbUser.contact2_phone,
+    lastCheckInAt: dbUser.last_check_in ? new Date(dbUser.last_check_in) : null,
+    createdAt: null,
+  };
+}
+
+// GET current user
 export function useUser() {
   return useQuery({
-    queryKey: [api.auth.me.path],
+    queryKey: ['user'],
     queryFn: async () => {
-      const res = await fetch(api.auth.me.path, { credentials: "include" });
-      if (res.status === 401 || res.status === 403) return null;
-      if (!res.ok) throw new Error("Failed to fetch user");
-      return api.auth.me.responses[200].parse(await res.json());
+      // Get current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error('[useUser] Session error:', sessionError);
+        throw sessionError;
+      }
+      if (!session) return null;
+
+      // Get user profile from database
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in')
+        .eq('id', session.user.id)
+        .single();
+
+      if (error) {
+        console.error('[useUser] Database error:', error);
+        // If user doesn't exist in database, clear session
+        if (error.code === 'PGRST116') {
+          console.warn('[useUser] User profile not found, signing out');
+          await supabase.auth.signOut();
+          return null;
+        }
+        throw error;
+      }
+
+      return dbUserToUser(data as DbUser);
     },
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 }
 
-// POST /api/login
+// POST login
 export function useLogin() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -26,27 +101,96 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: async (credentials: Pick<InsertUser, "username" | "password">) => {
-      const res = await fetch(api.auth.login.path, {
-        method: api.auth.login.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
-        credentials: "include",
+      console.log('[useLogin] Attempting login for:', credentials.username);
+
+      // Sign in with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: credentials.username + '@gmail.com',
+        password: credentials.password,
       });
 
-      if (!res.ok) {
-        if (res.status === 401) {
-          throw new Error("帳號或密碼錯誤 (Invalid username or password)");
-        }
-        throw new Error("登入失敗 (Login failed)");
+      if (authError) {
+        console.error('[useLogin] Auth error:', authError);
+        throw new Error("帳號或密碼錯誤");
       }
-      return api.auth.login.responses[200].parse(await res.json());
+      if (!authData.user) {
+        console.error('[useLogin] No user data returned');
+        throw new Error("登入失敗");
+      }
+
+      console.log('[useLogin] Auth successful, user ID:', authData.user.id);
+
+      // Get user profile from database
+      const { data, error: dbError } = await supabase
+        .from('users')
+        .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (dbError) {
+        console.error('[useLogin] Database query error:', dbError);
+
+        // If user profile doesn't exist, try to create it automatically
+        if (dbError.code === 'PGRST116') {
+          console.warn('[useLogin] User profile not found, creating default profile...');
+          console.log('[useLogin] Creating profile with username:', credentials.username);
+
+          const { data: insertData, error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: authData.user.id,
+              username: credentials.username,
+              display_name: credentials.username,
+              contact1_name: null,
+              contact1_phone: null,
+              contact2_name: null,
+              contact2_phone: null,
+            })
+            .select()
+            .single();
+
+          if (insertError) {
+            console.error('[useLogin] Failed to create profile:', insertError);
+            console.error('[useLogin] Insert error details:', {
+              code: insertError.code,
+              message: insertError.message,
+              details: insertError.details,
+            });
+            throw new Error(`無法創建使用者資料：${insertError.message}`);
+          }
+
+          console.log('[useLogin] Profile created:', insertData);
+
+          // Retry fetching the profile
+          const { data: retryData, error: retryError } = await supabase
+            .from('users')
+            .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in')
+            .eq('id', authData.user.id)
+            .single();
+
+          if (retryError) {
+            console.error('[useLogin] Retry fetch error:', retryError);
+            throw new Error("無法載入使用者資料");
+          }
+
+          console.log('[useLogin] Profile created successfully');
+          return dbUserToUser(retryData as DbUser);
+        }
+
+        throw new Error(`無法載入使用者資料：${dbError.message}`);
+      }
+
+      console.log('[useLogin] Login successful');
+      return dbUserToUser(data as DbUser);
     },
     onSuccess: (user) => {
-      queryClient.setQueryData([api.auth.me.path], user);
+      console.log('[useLogin] Setting user data in cache');
+      queryClient.setQueryData(['user'], user);
       toast({ title: "登入成功", description: `歡迎回來，${user.displayName}` });
-      setLocation("/"); // Redirect to dashboard
+      setLocation("/");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      console.error('[useLogin] Login failed:', error);
       toast({
         variant: "destructive",
         title: "登入失敗",
@@ -56,35 +200,132 @@ export function useLogin() {
   });
 }
 
-// POST /api/register
+// POST register
 export function useRegister() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
   return useMutation({
-    mutationFn: async (data: InsertUser) => {
-      const res = await fetch(api.auth.register.path, {
-        method: api.auth.register.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-        credentials: "include",
+    mutationFn: async (userData: InsertUser) => {
+      console.log('[useRegister] Starting registration for:', userData.username);
+
+      // Validate password length
+      if (userData.password.length < 6) {
+        throw new Error("密碼長度至少需要 6 個字元");
+      }
+
+      // Create auth user with Supabase Auth, including user metadata
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userData.username + '@gmail.com',
+        password: userData.password,
+        options: {
+          data: {
+            username: userData.username,
+            display_name: userData.displayName,
+          }
+        }
       });
 
-      if (!res.ok) {
-        if (res.status === 400) {
-          const error = await res.json();
-          throw new Error(error.message || "註冊資料有誤");
+      if (authError) {
+        console.error('[useRegister] Auth signup error:', authError);
+
+        // Check if user already exists
+        if (authError.message?.includes('already registered') || authError.message?.includes('User already registered')) {
+          throw new Error(`此帳號已被註冊，請直接登入`);
         }
-        throw new Error("註冊失敗 (Registration failed)");
+
+        throw new Error(`註冊失敗：${authError.message}`);
       }
-      return api.auth.register.responses[201].parse(await res.json());
+      if (!authData.user) {
+        console.error('[useRegister] No user data returned from signup');
+        throw new Error("註冊失敗：未返回使用者資料");
+      }
+
+      console.log('[useRegister] Auth user created, ID:', authData.user.id);
+
+      // Check if user profile already exists
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (existingUser) {
+        console.log('[useRegister] User profile already exists, this is OK');
+        // User profile already exists (from a previous failed registration)
+        // This is fine, just return success
+        return authData.user;
+      }
+
+      // Insert user profile into database using UPSERT
+      const { data: insertData, error: insertError } = await supabase
+        .from('users')
+        .upsert({
+          id: authData.user.id,
+          username: userData.username,
+          display_name: userData.displayName,
+          contact1_name: userData.contact1Name || null,
+          contact1_phone: userData.contact1Phone || null,
+          contact2_name: userData.contact2Name || null,
+          contact2_phone: userData.contact2Phone || null,
+        }, {
+          onConflict: 'id',
+          ignoreDuplicates: false
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('[useRegister] Database upsert error:', insertError);
+        console.error('[useRegister] Upsert error details:', {
+          code: insertError.code,
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint,
+        });
+
+        // Don't clean up auth user - it might be legitimate
+        // Just inform the user to try logging in
+        throw new Error(`無法創建使用者資料。如果您已註冊過，請直接登入。`);
+      }
+
+      console.log('[useRegister] User profile created successfully:', insertData);
+
+      // Verify the profile was created with correct data
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('users')
+        .select('id, username, display_name')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (verifyError) {
+        console.error('[useRegister] Verification failed:', verifyError);
+        await supabase.auth.signOut();
+        throw new Error("註冊失敗：無法驗證使用者資料");
+      }
+
+      // Verify username and display_name are not null
+      if (!verifyData.username || !verifyData.display_name) {
+        console.error('[useRegister] Username or display_name is null:', verifyData);
+        throw new Error("註冊失敗：用戶資料不完整");
+      }
+
+      console.log('[useRegister] Registration completed successfully');
+      console.log('[useRegister] Verified user data:', verifyData);
+      return authData.user;
     },
     onSuccess: () => {
-      toast({ title: "註冊成功", description: "請登入您的新帳號" });
+      console.log('[useRegister] Registration successful, redirecting to login');
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      toast({
+        title: "註冊成功",
+        description: "請登入您的新帳號"
+      });
       setLocation("/login");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      console.error('[useRegister] Registration failed:', error);
       toast({
         variant: "destructive",
         title: "註冊失敗",
@@ -94,7 +335,7 @@ export function useRegister() {
   });
 }
 
-// POST /api/logout
+// POST logout
 export function useLogout() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -102,16 +343,30 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: async () => {
-      const res = await fetch(api.auth.logout.path, { 
-        method: api.auth.logout.method,
-        credentials: "include" 
-      });
-      if (!res.ok) throw new Error("Logout failed");
+      console.log('[useLogout] Signing out');
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('[useLogout] Logout error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      queryClient.setQueryData([api.auth.me.path], null);
-      toast({ title: "已登出", description: "期待您下次使用" });
+      console.log('[useLogout] Logout successful');
+      queryClient.setQueryData(['user'], null);
+      queryClient.clear();
+      toast({
+        title: "已登出",
+        description: "期待您下次使用"
+      });
       setLocation("/login");
+    },
+    onError: (error: Error) => {
+      console.error('[useLogout] Logout failed:', error);
+      toast({
+        variant: "destructive",
+        title: "登出失敗",
+        description: error.message,
+      });
     },
   });
 }

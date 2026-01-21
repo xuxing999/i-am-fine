@@ -1,5 +1,6 @@
 import { useUser, useLogout } from "@/hooks/use-auth";
 import { useCheckIn } from "@/hooks/use-check-in";
+import { usePWAInstall } from "@/hooks/use-pwa-install";
 import { Loader2, LogOut, Share2, ShieldCheck, HeartPulse, Phone, Settings, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -21,29 +22,51 @@ export default function Dashboard() {
   const { data: user, isLoading: isLoadingUser } = useUser();
   const { mutate: logout } = useLogout();
   const { mutate: checkIn, isPending: isCheckingIn } = useCheckIn();
+  const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [localIsSafe, setLocalIsSafe] = useState(true);
   const [isIOS, setIsIOS] = useState(false);
+
+  // Debug user data on mount
+  useEffect(() => {
+    console.log('[Dashboard] User data:', user);
+    console.log('[Dashboard] User keys:', user ? Object.keys(user) : 'user is null/undefined');
+    console.log('[Dashboard] User.username:', user?.username);
+    console.log('[Dashboard] User.displayName:', user?.displayName);
+  }, [user]);
 
   useEffect(() => {
     const ua = window.navigator.userAgent;
     setIsIOS(/iPad|iPhone|iPod/.test(ua));
   }, []);
 
-  // 每 100 毫秒進行一次本地精準比對
+  // 每秒進行一次本地精準比對
   useEffect(() => {
-    if (!user?.lastCheckInAt) return;
-
     // 用於測試的變數：逾時時間（秒）
-    const TIMEOUT_SECONDS = 30; // 測試用，正式環境應為 86400 (24小時)
-    const lastCheckIn = new Date(user.lastCheckInAt).getTime();
+    const TIMEOUT_SECONDS = 10; // 測試用：10秒，正式環境應為 86400 (24小時)
 
-    const timer = setInterval(() => {
+    const updateSafeStatus = () => {
+      if (!user?.lastCheckInAt) {
+        // 如果從未報平安，狀態為不安全（需要報平安）
+        setLocalIsSafe(false);
+        return;
+      }
+
+      const lastCheckIn = new Date(user.lastCheckInAt).getTime();
       const now = new Date().getTime();
       const secondsPassed = (now - lastCheckIn) / 1000;
-      setLocalIsSafe(secondsPassed < TIMEOUT_SECONDS);
-    }, 1000);
+      const isSafe = secondsPassed < TIMEOUT_SECONDS;
+
+      console.log(`[Dashboard] Safe status check: ${secondsPassed.toFixed(1)}s passed, isSafe=${isSafe}`);
+      setLocalIsSafe(isSafe);
+    };
+
+    // 立即執行一次
+    updateSafeStatus();
+
+    // 每秒更新一次狀態
+    const timer = setInterval(updateSafeStatus, 1000);
 
     return () => clearInterval(timer);
   }, [user?.lastCheckInAt]);
@@ -62,16 +85,51 @@ export default function Dashboard() {
   }
 
   const handleShare = () => {
+    console.log('[Dashboard] handleShare - user:', user);
+    console.log('[Dashboard] handleShare - user.username:', user.username);
+
+    if (!user.username) {
+      toast({
+        variant: "destructive",
+        title: "無法分享",
+        description: "找不到您的用戶名，請重新登入"
+      });
+      return;
+    }
+
     const url = `${window.location.origin}/status/${user.username}`;
+    console.log('[Dashboard] Generated share URL:', url);
+
     navigator.clipboard.writeText(url).then(() => {
       toast({
         title: "連結已複製",
-        description: "請將連結貼上並傳送給家人",
+        description: `連結：${url}`,
+      });
+    }).catch((err) => {
+      console.error('[Dashboard] Failed to copy URL:', err);
+      toast({
+        variant: "destructive",
+        title: "複製失敗",
+        description: "請手動複製連結：" + url
       });
     });
   };
 
+  // 已報平安 = 在時限內報過平安
+  // 未報平安 = 從未報平安 OR 超過時限
   const isAlreadyCheckedInToday = localIsSafe;
+
+  // 處理 PWA 安裝
+  const handlePWAInstall = async () => {
+    const success = await promptInstall();
+    if (success) {
+      toast({
+        title: "安裝成功",
+        description: "應用程式已加入您的裝置",
+        className: "bg-green-100 border-green-500 text-green-900"
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white pb-32">
@@ -242,20 +300,50 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* PWA Install Guide */}
-        <div className="bg-green-50 p-8 rounded-3xl border-2 border-green-100 space-y-4">
-          <div className="flex items-center gap-3 text-green-700">
-            <Download className="w-8 h-8" />
-            <h3 className="text-2xl font-black">把應用放在桌面</h3>
-          </div>
-          <p className="text-xl text-green-800 font-medium leading-relaxed">
-            {isIOS ? (
-              <span>點擊下方的「分享」按鈕 <span className="inline-block px-2 border rounded">分享</span>，再選擇「加入主畫面」，報平安更快速！</span>
+        {/* PWA Install Guide - 只在未安裝時顯示 */}
+        {!isInstalled && (
+          <div className="bg-green-50 p-8 rounded-3xl border-2 border-green-100 space-y-4">
+            <div className="flex items-center gap-3 text-green-700">
+              <Download className="w-8 h-8" />
+              <h3 className="text-2xl font-black">把應用放在桌面</h3>
+            </div>
+
+            {isInstallable ? (
+              // Android/Chrome - 顯示直接安裝按鈕
+              <div className="space-y-4">
+                <p className="text-xl text-green-800 font-medium leading-relaxed">
+                  點擊下方按鈕，將「平安守護」加入您的手機桌面，下次使用更方便！
+                </p>
+                <button
+                  onClick={handlePWAInstall}
+                  className="w-full py-6 px-6 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-2xl font-black text-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
+                >
+                  <Download className="w-7 h-7" />
+                  <span>立即安裝到桌面</span>
+                </button>
+              </div>
+            ) : isIOS ? (
+              // iOS - 顯示手動安裝說明
+              <p className="text-xl text-green-800 font-medium leading-relaxed">
+                點擊下方的「分享」按鈕 <span className="inline-block px-2 border border-green-600 rounded">分享</span>，再選擇「加入主畫面」，報平安更快速！
+              </p>
             ) : (
-              <span>點擊瀏覽器右上角的選單，選擇「安裝應用程式」，之後在桌面就能直接開啟囉！</span>
+              // 其他瀏覽器 - 顯示通用說明
+              <p className="text-xl text-green-800 font-medium leading-relaxed">
+                點擊瀏覽器右上角的選單，選擇「安裝應用程式」或「加到主畫面」，之後在桌面就能直接開啟囉！
+              </p>
             )}
-          </p>
-        </div>
+          </div>
+        )}
+
+        {/* 已安裝提示 */}
+        {isInstalled && (
+          <div className="bg-blue-50 p-6 rounded-3xl border-2 border-blue-100 text-center">
+            <p className="text-xl text-blue-800 font-medium">
+              ✨ 應用已成功安裝！您可以從桌面直接開啟使用。
+            </p>
+          </div>
+        )}
       </main>
     </div>
   );

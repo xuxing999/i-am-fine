@@ -1,11 +1,20 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRegister } from "@/hooks/use-auth";
-import { insertUserSchema } from "@shared/routes";
+import { useRegister, type InsertUser } from "@/hooks/use-auth";
 import { Link } from "wouter";
 import { Loader2, UserPlus, Phone, User } from "lucide-react";
 import { motion } from "framer-motion";
-import type { InsertUser } from "@shared/routes";
+import { z } from "zod";
+
+const insertUserSchema = z.object({
+  username: z.string().min(3, "帳號至少需要 3 個字元"),
+  password: z.string().min(6, "密碼至少需要 6 個字元"),
+  displayName: z.string().min(1, "請輸入顯示名稱"),
+  contact1Name: z.string().optional(),
+  contact1Phone: z.string().optional(),
+  contact2Name: z.string().optional(),
+  contact2Phone: z.string().optional(),
+});
 
 export default function Register() {
   const { mutate: registerUser, isPending } = useRegister();

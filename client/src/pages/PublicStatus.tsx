@@ -3,29 +3,47 @@ import { Loader2, ShieldCheck, ShieldAlert, Phone, Clock, ShieldQuestion, Extern
 import { useRoute, Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import { queryClient } from "@/lib/queryClient";
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { zhTW } from "date-fns/locale";
 
 export default function PublicStatus() {
-  const [, params] = useRoute("/status/:username");
+  const [match, params] = useRoute("/status/:username");
   const username = params?.username || "";
+
+  console.log('[PublicStatus] Route match:', match);
+  console.log('[PublicStatus] Params:', params);
+  console.log('[PublicStatus] Username from params:', username);
+
   const { data: status, isLoading, error } = usePublicStatus(username);
   const [localIsSafe, setLocalIsSafe] = useState(true);
+  const queryClient = useQueryClient();
 
-  // 每 100 毫秒進行一次本地精準比對，確保 30 秒倒數精確同步
+  // 每秒進行一次本地精準比對，確保 10 秒倒數精確同步
   useEffect(() => {
-    if (!status?.lastCheckInAt) return;
-
     // 用於測試的變數：逾時時間（秒）
-    const TIMEOUT_SECONDS = 30; // 測試用，正式環境應為 86400 (24小時)
-    const lastCheckIn = new Date(status.lastCheckInAt).getTime();
+    const TIMEOUT_SECONDS = 10; // 測試用：10秒，正式環境應為 86400 (24小時)
 
-    const timer = setInterval(() => {
+    const updateSafeStatus = () => {
+      if (!status?.lastCheckInAt) {
+        setLocalIsSafe(false);
+        return;
+      }
+
+      const lastCheckIn = new Date(status.lastCheckInAt).getTime();
       const now = new Date().getTime();
       const secondsPassed = (now - lastCheckIn) / 1000;
-      setLocalIsSafe(secondsPassed < TIMEOUT_SECONDS);
-    }, 100);
+      const isSafe = secondsPassed < TIMEOUT_SECONDS;
+
+      console.log(`[PublicStatus] Safe status check: ${secondsPassed.toFixed(1)}s passed, isSafe=${isSafe}`);
+      setLocalIsSafe(isSafe);
+    };
+
+    // 立即執行一次
+    updateSafeStatus();
+
+    // 每秒更新一次狀態
+    const timer = setInterval(updateSafeStatus, 1000);
 
     return () => clearInterval(timer);
   }, [status?.lastCheckInAt]);
@@ -40,13 +58,13 @@ export default function PublicStatus() {
   // 每 5 秒自動重新獲取數據 (後台輪詢作為保險)
   useEffect(() => {
     if (!username) return;
-    
+
     const interval = setInterval(() => {
-      queryClient.invalidateQueries({ queryKey: ["/api/status", username] });
+      queryClient.invalidateQueries({ queryKey: ['public-status', username] });
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [username]);
+  }, [username, queryClient]);
 
   if (isLoading) {
     return (
