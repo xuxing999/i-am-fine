@@ -2,39 +2,40 @@
   "name": "平安守護",
   "short_name": "我很好",
   "description": "獨居者的數位平安鐘 - 讓關心不再打擾，讓守護隨時在線",
-  "start_url": "/",
+  "start_url": "/?v=1.0.0",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#16a34a",
   "scope": "/",
+  "categories": [
+    "health",
+    "lifestyle",
+    "social"
+  ],
+  "lang": "zh-TW",
+  "dir": "ltr",
   "icons": [
     {
-      "src": "/icons/pwa/icon.png",
+      "src": "/icons/pwa/icon.png?v=1.0.0",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/pwa/icon.png",
+      "src": "/icons/pwa/icon.png?v=1.0.0",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512.png?v=1.0.0",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/apple-touch-icon.png",
+      "src": "/apple-touch-icon.png?v=1.0.0",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
@@ -42,16 +43,18 @@
   ],
   "screenshots": [
     {
-      "src": "/icons/pwa/iPhone_16__iPhone_15_Pro__iPhone_15__iPhone_14_Pro_portrait.png",
+      "src": "/icons/pwa/iPhone_16__iPhone_15_Pro__iPhone_15__iPhone_14_Pro_portrait.png?v=1.0.0",
       "sizes": "1179x2556",
       "type": "image/png",
-      "form_factor": "narrow"
+      "form_factor": "narrow",
+      "label": "iPhone 主畫面"
     },
     {
-      "src": "/icons/pwa/12.9__iPad_Pro_portrait.png",
+      "src": "/icons/pwa/12.9__iPad_Pro_portrait.png?v=1.0.0",
       "sizes": "2048x2732",
       "type": "image/png",
-      "form_factor": "wide"
+      "form_factor": "wide",
+      "label": "iPad 主畫面"
     }
   ]
 }
