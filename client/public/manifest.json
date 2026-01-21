@@ -1,12 +1,32 @@
 {
-  "name": "平安守護！",
+  "name": "平安守護",
   "short_name": "我很好",
-  "description": "長輩安全報平安應用程式",
+  "description": "獨居者的數位平安鐘 - 讓關心不再打擾，讓守護隨時在線",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#16a34a",
+  "scope": "/",
   "icons": [
+    {
+      "src": "/icons/pwa/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/pwa/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
@@ -14,10 +34,24 @@
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/apple-touch-icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icons/pwa/iPhone_16__iPhone_15_Pro__iPhone_15__iPhone_14_Pro_portrait.png",
+      "sizes": "1179x2556",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/icons/pwa/12.9__iPad_Pro_portrait.png",
+      "sizes": "2048x2732",
+      "type": "image/png",
+      "form_factor": "wide"
     }
   ]
 }
