@@ -16,4 +16,4 @@
  * 正式環境：
  * - 維持 86400 秒（24 小時）
  */
-export const CHECKIN_TIMEOUT_SECONDS = 86400; // 24 小時
+export const CHECKIN_TIMEOUT_SECONDS = 30; // 24 小時
