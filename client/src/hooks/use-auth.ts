@@ -37,6 +37,7 @@ type DbUser = {
   contact2_name: string | null;
   contact2_phone: string | null;
   last_check_in: string | null;
+  created_at: string | null;
 };
 
 // Convert database user (snake_case) to frontend user (camelCase)
@@ -50,7 +51,7 @@ function dbUserToUser(dbUser: DbUser): User {
     contact2Name: dbUser.contact2_name,
     contact2Phone: dbUser.contact2_phone,
     lastCheckInAt: dbUser.last_check_in ? new Date(dbUser.last_check_in) : null,
-    createdAt: null,
+    createdAt: dbUser.created_at ? new Date(dbUser.created_at) : null,
   };
 }
 
@@ -71,7 +72,7 @@ export function useUser() {
       // Get user profile from database
       const { data, error } = await supabase
         .from('users')
-        .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in')
+        .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in, created_at')
         .eq('id', session.user.id)
         .single();
 
@@ -123,7 +124,7 @@ export function useLogin() {
       // Get user profile from database
       const { data, error: dbError } = await supabase
         .from('users')
-        .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in')
+        .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in, created_at')
         .eq('id', authData.user.id)
         .single();
 
@@ -164,7 +165,7 @@ export function useLogin() {
           // Retry fetching the profile
           const { data: retryData, error: retryError } = await supabase
             .from('users')
-            .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in')
+            .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in, created_at')
             .eq('id', authData.user.id)
             .single();
 

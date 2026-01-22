@@ -51,6 +51,21 @@ export default function Dashboard() {
         return;
       }
 
+      // 🆕 FTUE 優化：檢查是否為新用戶（剛註冊未報平安）
+      // 如果 lastCheckInAt 與 createdAt 相差 < 10 秒，視為「從未報平安」
+      if (user.createdAt) {
+        const lastCheckIn = new Date(user.lastCheckInAt).getTime();
+        const createdAt = new Date(user.createdAt).getTime();
+        const timeSinceCreation = Math.abs(lastCheckIn - createdAt) / 1000;
+
+        if (timeSinceCreation < 10) {
+          // 新用戶剛註冊，lastCheckInAt 是 DB 預設值，視為「從未報平安」
+          console.log(`[Dashboard] 新用戶首次登入，按鈕應可點擊`);
+          setLocalIsSafe(false);
+          return;
+        }
+      }
+
       const lastCheckIn = new Date(user.lastCheckInAt).getTime();
       const now = new Date().getTime();
       const secondsPassed = (now - lastCheckIn) / 1000;
@@ -67,7 +82,7 @@ export default function Dashboard() {
     const timer = setInterval(updateSafeStatus, 1000);
 
     return () => clearInterval(timer);
-  }, [user?.lastCheckInAt]);
+  }, [user?.lastCheckInAt, user?.createdAt]);
 
   if (isLoadingUser) {
     return (
