@@ -2,7 +2,7 @@ import { useUser, useLogout } from "@/hooks/use-auth";
 import { useCheckIn } from "@/hooks/use-check-in";
 import { usePWAInstall } from "@/hooks/use-pwa-install";
 import { Loader2, LogOut, Share2, ShieldCheck, HeartPulse, Phone, Settings, Download } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
@@ -206,47 +206,30 @@ export default function Dashboard() {
 
         {/* Primary Action - Huge Circular Button */}
         <div className="flex justify-center py-8">
-          <div className="relative">
-            <AnimatePresence>
-              {!isAlreadyCheckedInToday && (
-                <motion.div
-                  initial={{ scale: 1, opacity: 0.5 }}
-                  animate={{ scale: 1.2, opacity: 0 }}
-                  transition={{ 
-                    repeat: Infinity, 
-                    duration: 2,
-                    ease: "easeOut" 
-                  }}
-                  className="absolute inset-0 bg-green-400 rounded-full"
-                />
-              )}
-            </AnimatePresence>
-            
-            <motion.button
-              whileTap={!isAlreadyCheckedInToday ? { scale: 0.9 } : {}}
-              onClick={() => !isAlreadyCheckedInToday && checkIn()}
-              disabled={isCheckingIn || isAlreadyCheckedInToday}
-              className={`
-                relative z-10
-                w-64 h-64 rounded-full
-                flex flex-col items-center justify-center gap-4
-                text-white shadow-2xl
-                transition-all duration-500
-                ${isAlreadyCheckedInToday 
-                  ? "bg-gray-300 shadow-none cursor-default" 
-                  : "bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:shadow-inner"}
-              `}
-            >
-              {isCheckingIn ? (
-                <Loader2 className="w-20 h-20 animate-spin" />
-              ) : (
-                <HeartPulse className={`w-24 h-24 ${!isAlreadyCheckedInToday ? "animate-pulse" : ""}`} />
-              )}
-              <span className="text-4xl font-black">
-                {isCheckingIn ? "更新中" : isAlreadyCheckedInToday ? "今天也很好" : "我很好！"}
-              </span>
-            </motion.button>
-          </div>
+          <motion.button
+            whileTap={!isAlreadyCheckedInToday ? { scale: 0.9 } : {}}
+            onClick={() => !isAlreadyCheckedInToday && checkIn()}
+            disabled={isCheckingIn || isAlreadyCheckedInToday}
+            className={`
+              ${!isAlreadyCheckedInToday ? 'check-in-button breathing' : ''}
+              w-64 h-64 rounded-full
+              flex flex-col items-center justify-center gap-4
+              text-white shadow-2xl
+              transition-all duration-300
+              ${isAlreadyCheckedInToday
+                ? "bg-gray-300 shadow-none cursor-default"
+                : "bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"}
+            `}
+          >
+            {isCheckingIn ? (
+              <Loader2 className="w-20 h-20 animate-spin" />
+            ) : (
+              <HeartPulse className={`w-24 h-24 ${!isAlreadyCheckedInToday ? "animate-pulse" : ""}`} />
+            )}
+            <span className="text-4xl font-black">
+              {isCheckingIn ? "更新中" : isAlreadyCheckedInToday ? "今天也很好" : "我很好！"}
+            </span>
+          </motion.button>
         </div>
 
         {/* Emergency Contacts - Quick Call Style */}
