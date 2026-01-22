@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
+import { CHECKIN_TIMEOUT_SECONDS } from "@/config/constants";
 import {
   Drawer,
   DrawerClose,
@@ -43,9 +44,6 @@ export default function Dashboard() {
 
   // 每秒進行一次本地精準比對
   useEffect(() => {
-    // 用於測試的變數：逾時時間（秒）
-    const TIMEOUT_SECONDS = 10; // 測試用：10秒，正式環境應為 86400 (24小時)
-
     const updateSafeStatus = () => {
       if (!user?.lastCheckInAt) {
         // 如果從未報平安，狀態為不安全（需要報平安）
@@ -56,7 +54,7 @@ export default function Dashboard() {
       const lastCheckIn = new Date(user.lastCheckInAt).getTime();
       const now = new Date().getTime();
       const secondsPassed = (now - lastCheckIn) / 1000;
-      const isSafe = secondsPassed < TIMEOUT_SECONDS;
+      const isSafe = secondsPassed < CHECKIN_TIMEOUT_SECONDS;
 
       console.log(`[Dashboard] Safe status check: ${secondsPassed.toFixed(1)}s passed, isSafe=${isSafe}`);
       setLocalIsSafe(isSafe);

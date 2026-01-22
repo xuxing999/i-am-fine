@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { CHECKIN_TIMEOUT_SECONDS } from "@/config/constants";
 
 // POST /api/check-in - Update last check-in time
 export function useCheckIn() {
@@ -76,11 +77,10 @@ export function usePublicStatus(username: string) {
       console.log('[usePublicStatus] User found:', data);
 
       // Calculate isSafe based on last check-in time
-      const TIMEOUT_SECONDS = 10; // 測試用：10秒，正式環境應為 86400 (24小時)
       const lastCheckIn = data.last_check_in ? new Date(data.last_check_in).getTime() : 0;
       const now = new Date().getTime();
       const secondsPassed = (now - lastCheckIn) / 1000;
-      const isSafe = secondsPassed < TIMEOUT_SECONDS;
+      const isSafe = secondsPassed < CHECKIN_TIMEOUT_SECONDS;
 
       console.log(`[usePublicStatus] Time check: ${secondsPassed.toFixed(1)}s passed, isSafe=${isSafe}`);
 

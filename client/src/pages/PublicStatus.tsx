@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { zhTW } from "date-fns/locale";
+import { CHECKIN_TIMEOUT_SECONDS } from "@/config/constants";
 
 export default function PublicStatus() {
   const [match, params] = useRoute("/status/:username");
@@ -19,11 +20,8 @@ export default function PublicStatus() {
   const [localIsSafe, setLocalIsSafe] = useState(true);
   const queryClient = useQueryClient();
 
-  // 每秒進行一次本地精準比對，確保 10 秒倒數精確同步
+  // 每秒進行一次本地精準比對，確保倒數精確同步
   useEffect(() => {
-    // 用於測試的變數：逾時時間（秒）
-    const TIMEOUT_SECONDS = 10; // 測試用：10秒，正式環境應為 86400 (24小時)
-
     const updateSafeStatus = () => {
       if (!status?.lastCheckInAt) {
         setLocalIsSafe(false);
@@ -33,7 +31,7 @@ export default function PublicStatus() {
       const lastCheckIn = new Date(status.lastCheckInAt).getTime();
       const now = new Date().getTime();
       const secondsPassed = (now - lastCheckIn) / 1000;
-      const isSafe = secondsPassed < TIMEOUT_SECONDS;
+      const isSafe = secondsPassed < CHECKIN_TIMEOUT_SECONDS;
 
       console.log(`[PublicStatus] Safe status check: ${secondsPassed.toFixed(1)}s passed, isSafe=${isSafe}`);
       setLocalIsSafe(isSafe);
