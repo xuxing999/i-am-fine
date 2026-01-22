@@ -66,13 +66,18 @@ export default function Dashboard() {
         }
       }
 
-      const lastCheckIn = new Date(user.lastCheckInAt).getTime();
-      const now = new Date().getTime();
-      const secondsPassed = (now - lastCheckIn) / 1000;
-      const isSafe = secondsPassed < CHECKIN_TIMEOUT_SECONDS;
+      // 🔧 修正：檢查是否在「今日」報過平安（當地時區的 00:00-23:59）
+      const lastCheckIn = new Date(user.lastCheckInAt);
+      const now = new Date();
 
-      console.log(`[Dashboard] Safe status check: ${secondsPassed.toFixed(1)}s passed, isSafe=${isSafe}`);
-      setLocalIsSafe(isSafe);
+      // 取得今天的開始時間（00:00:00）
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+
+      // 檢查 lastCheckInAt 是否在今天 00:00 之後
+      const isCheckedInToday = lastCheckIn >= todayStart;
+
+      console.log(`[Dashboard] Last check-in: ${lastCheckIn.toLocaleString()}, Today start: ${todayStart.toLocaleString()}, isCheckedInToday=${isCheckedInToday}`);
+      setLocalIsSafe(isCheckedInToday);
     };
 
     // 立即執行一次

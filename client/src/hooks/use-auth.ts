@@ -36,7 +36,7 @@ type DbUser = {
   contact1_phone: string | null;
   contact2_name: string | null;
   contact2_phone: string | null;
-  last_check_in: string | null;
+  last_check_in_at: string | null;
   created_at: string | null;
 };
 
@@ -50,7 +50,7 @@ function dbUserToUser(dbUser: DbUser): User {
     contact1Phone: dbUser.contact1_phone,
     contact2Name: dbUser.contact2_name,
     contact2Phone: dbUser.contact2_phone,
-    lastCheckInAt: dbUser.last_check_in ? new Date(dbUser.last_check_in) : null,
+    lastCheckInAt: dbUser.last_check_in_at ? new Date(dbUser.last_check_in_at) : null,
     createdAt: dbUser.created_at ? new Date(dbUser.created_at) : null,
   };
 }
@@ -70,11 +70,25 @@ export function useUser() {
       if (!session) return null;
 
       // Get user profile from database
-      const { data, error } = await supabase
+      // Try with created_at first, fallback if column doesn't exist
+      let { data, error } = await supabase
         .from('users')
-        .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in, created_at')
+        .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in_at, created_at')
         .eq('id', session.user.id)
         .single();
+
+      // If created_at column doesn't exist, retry without it
+      if (error && error.message?.includes('column') && error.message?.includes('created_at')) {
+        console.warn('[useUser] created_at column not found, falling back to query without it');
+        const fallback = await supabase
+          .from('users')
+          .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in_at')
+          .eq('id', session.user.id)
+          .single();
+
+        data = fallback.data;
+        error = fallback.error;
+      }
 
       if (error) {
         console.error('[useUser] Database error:', error);
@@ -122,11 +136,25 @@ export function useLogin() {
       console.log('[useLogin] Auth successful, user ID:', authData.user.id);
 
       // Get user profile from database
-      const { data, error: dbError } = await supabase
+      // Try with created_at first, fallback if column doesn't exist
+      let { data, error: dbError } = await supabase
         .from('users')
-        .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in, created_at')
+        .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in_at, created_at')
         .eq('id', authData.user.id)
         .single();
+
+      // Fallback if created_at column doesn't exist
+      if (dbError && dbError.message?.includes('column') && dbError.message?.includes('created_at')) {
+        console.warn('[useLogin] created_at column not found, retrying without it');
+        const fallback = await supabase
+          .from('users')
+          .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in_at')
+          .eq('id', authData.user.id)
+          .single();
+
+        data = fallback.data;
+        dbError = fallback.error;
+      }
 
       if (dbError) {
         console.error('[useLogin] Database query error:', dbError);
@@ -163,11 +191,25 @@ export function useLogin() {
           console.log('[useLogin] Profile created:', insertData);
 
           // Retry fetching the profile
-          const { data: retryData, error: retryError } = await supabase
+          // Try with created_at first, fallback if column doesn't exist
+          let { data: retryData, error: retryError } = await supabase
             .from('users')
-            .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in, created_at')
+            .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in_at, created_at')
             .eq('id', authData.user.id)
             .single();
+
+          // Fallback if created_at column doesn't exist
+          if (retryError && retryError.message?.includes('column') && retryError.message?.includes('created_at')) {
+            console.warn('[useLogin] created_at column not found in retry, retrying without it');
+            const fallback = await supabase
+              .from('users')
+              .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in_at')
+              .eq('id', authData.user.id)
+              .single();
+
+            retryData = fallback.data;
+            retryError = fallback.error;
+          }
 
           if (retryError) {
             console.error('[useLogin] Retry fetch error:', retryError);

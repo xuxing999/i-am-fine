@@ -19,7 +19,7 @@ export function useCheckIn() {
       // Update last check-in time in database
       const { error } = await supabase
         .from('users')
-        .update({ last_check_in: new Date().toISOString() })
+        .update({ last_check_in_at: new Date().toISOString() })
         .eq('id', session.user.id);
 
       if (error) throw new Error("報平安失敗 (Check-in failed)");
@@ -53,7 +53,7 @@ export function usePublicStatus(username: string) {
       // Query user by username (public access)
       const { data, error } = await supabase
         .from('users')
-        .select('id, username, display_name, last_check_in')
+        .select('id, username, display_name, last_check_in_at')
         .eq('username', username)
         .single();
 
@@ -77,7 +77,7 @@ export function usePublicStatus(username: string) {
       console.log('[usePublicStatus] User found:', data);
 
       // Calculate isSafe based on last check-in time
-      const lastCheckIn = data.last_check_in ? new Date(data.last_check_in).getTime() : 0;
+      const lastCheckIn = data.last_check_in_at ? new Date(data.last_check_in_at).getTime() : 0;
       const now = new Date().getTime();
       const secondsPassed = (now - lastCheckIn) / 1000;
       const isSafe = secondsPassed < CHECKIN_TIMEOUT_SECONDS;
@@ -86,7 +86,7 @@ export function usePublicStatus(username: string) {
 
       return {
         displayName: data.display_name,
-        lastCheckInAt: data.last_check_in,
+        lastCheckInAt: data.last_check_in_at,
         isSafe,
       };
     },
