@@ -5,8 +5,10 @@ import { Loader2, LogOut, Share2, ShieldCheck, HeartPulse, Phone, Settings, Down
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { useEffect, useState } from "react";
-import { CHECKIN_TIMEOUT_SECONDS } from "@/config/constants";
+import { useEffect, useState, useRef } from "react";
+import { supabase } from "@/lib/supabase";
+import { useQueryClient } from "@tanstack/react-query";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import {
   Drawer,
   DrawerClose,
@@ -28,6 +30,8 @@ export default function Dashboard() {
   const [, setLocation] = useLocation();
   const [localIsSafe, setLocalIsSafe] = useState(true);
   const [isIOS, setIsIOS] = useState(false);
+  const queryClient = useQueryClient();
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
   // Debug user data on mount
   useEffect(() => {
@@ -42,7 +46,7 @@ export default function Dashboard() {
     setIsIOS(/iPad|iPhone|iPod/.test(ua));
   }, []);
 
-  // 每秒進行一次本地精準比對
+  // 每秒進行一次本地精準比對（使用動態閾值）
   useEffect(() => {
     const updateSafeStatus = () => {
       if (!user?.lastCheckInAt) {
@@ -66,18 +70,18 @@ export default function Dashboard() {
         }
       }
 
-      // 🔧 修正：檢查是否在「今日」報過平安（當地時區的 00:00-23:59）
-      const lastCheckIn = new Date(user.lastCheckInAt);
-      const now = new Date();
+      // 🔧 使用動態閾值判斷：基於時間差而非日期
+      const lastCheckIn = new Date(user.lastCheckInAt).getTime();
+      const now = new Date().getTime();
+      const secondsPassed = (now - lastCheckIn) / 1000;
+      const userThreshold = user.timeoutThreshold || 86400; // 預設 24 小時
 
-      // 取得今天的開始時間（00:00:00）
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      // 如果時間差小於閾值，視為「已報平安」（按鈕灰色）
+      // 如果時間差大於等於閾值，視為「需要報平安」（按鈕綠色）
+      const isWithinThreshold = secondsPassed < userThreshold;
 
-      // 檢查 lastCheckInAt 是否在今天 00:00 之後
-      const isCheckedInToday = lastCheckIn >= todayStart;
-
-      console.log(`[Dashboard] Last check-in: ${lastCheckIn.toLocaleString()}, Today start: ${todayStart.toLocaleString()}, isCheckedInToday=${isCheckedInToday}`);
-      setLocalIsSafe(isCheckedInToday);
+      console.log(`[Dashboard] Time check: ${secondsPassed.toFixed(1)}s passed, threshold=${userThreshold}s, isWithinThreshold=${isWithinThreshold}`);
+      setLocalIsSafe(isWithinThreshold);
     };
 
     // 立即執行一次
@@ -87,7 +91,51 @@ export default function Dashboard() {
     const timer = setInterval(updateSafeStatus, 1000);
 
     return () => clearInterval(timer);
-  }, [user?.lastCheckInAt, user?.createdAt]);
+  }, [user?.lastCheckInAt, user?.createdAt, user?.timeoutThreshold]);
+
+  // Realtime 訂閱：監聽自己的 user 資料變更（包含 timeout_threshold）
+  useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('[Dashboard] Setting up Realtime subscription for user:', user.id);
+
+    // 訂閱自己的 user 資料變更
+    const channel = supabase
+      .channel(`dashboard-user-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'users',
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('[Dashboard Realtime] User data updated:', payload);
+
+          // 立即刷新 user 資料（包含新的 timeout_threshold）
+          queryClient.invalidateQueries({ queryKey: ['user'] });
+
+          // 如果 timeout_threshold 變更了，顯示提示
+          if (payload.new.timeout_threshold !== payload.old.timeout_threshold) {
+            console.log(`[Dashboard Realtime] Threshold changed: ${payload.old.timeout_threshold} → ${payload.new.timeout_threshold}`);
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[Dashboard Realtime] Subscription status:', status);
+      });
+
+    channelRef.current = channel;
+
+    return () => {
+      console.log('[Dashboard] Cleaning up Realtime subscription');
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [user?.id, queryClient]);
 
   if (isLoadingUser) {
     return (
@@ -161,47 +209,64 @@ export default function Dashboard() {
           <div className="flex gap-2">
             <Drawer>
               <DrawerTrigger asChild>
-                <button className="p-3 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
+                <button
+                  className="min-w-[44px] min-h-[44px] p-3 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors active:scale-95"
+                  aria-label="開啟設定選單"
+                >
                   <Settings className="h-8 w-8" />
                 </button>
               </DrawerTrigger>
-              <DrawerContent className="z-[100]">
-                <div className="mx-auto w-full max-w-sm p-6 space-y-6">
+              <DrawerContent>
+                <div className="mx-auto w-full max-w-sm p-6 space-y-6 pointer-events-auto">
                   <DrawerHeader className="px-0 text-center">
                     <DrawerTitle className="text-2xl font-black">設定選單</DrawerTitle>
                     <DrawerDescription className="text-lg">請選擇您要進行的操作</DrawerDescription>
                   </DrawerHeader>
                   <div className="grid gap-4">
-                    <Button 
-                      variant="outline" 
-                      size="lg" 
-                      className="py-8 text-xl font-bold rounded-2xl justify-start gap-4"
-                      onClick={() => {
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="min-h-[60px] py-8 text-xl font-bold rounded-2xl justify-start gap-4 active:scale-95 transition-transform"
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setLocation("/settings");
                       }}
                     >
                       <Settings className="h-6 w-6" /> <span>設定家人電話</span>
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="lg" 
-                      className="py-8 text-xl font-bold rounded-2xl justify-start gap-4"
-                      onClick={handleShare}
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="min-h-[60px] py-8 text-xl font-bold rounded-2xl justify-start gap-4 active:scale-95 transition-transform"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShare();
+                      }}
                     >
                       <Share2 className="h-6 w-6" /> <span>分享狀態給家人</span>
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="lg" 
-                      className="py-8 text-xl font-bold rounded-2xl justify-start gap-4 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => logout()}
+                    <Button
+                      variant="ghost"
+                      size="lg"
+                      className="min-h-[60px] py-8 text-xl font-bold rounded-2xl justify-start gap-4 text-red-600 hover:text-red-700 hover:bg-red-50 active:scale-95 transition-transform"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        logout();
+                      }}
                     >
                       <LogOut className="h-6 w-6" /> <span>登出</span>
                     </Button>
                   </div>
                   <DrawerFooter className="px-0 pt-4">
                     <DrawerClose asChild>
-                      <Button variant="secondary" size="lg" className="py-8 text-xl font-bold rounded-2xl w-full">關閉</Button>
+                      <Button
+                        variant="secondary"
+                        size="lg"
+                        className="min-h-[60px] py-8 text-xl font-bold rounded-2xl w-full active:scale-95 transition-transform"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        關閉
+                      </Button>
                     </DrawerClose>
                   </DrawerFooter>
                 </div>
