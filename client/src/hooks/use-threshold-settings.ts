@@ -65,7 +65,7 @@ export function useUpdateThreshold() {
         title: "閾值已更新",
         description: thresholdInfo.toast,
         className: "bg-green-100 border-green-500 text-green-900",
-        duration: 4000,
+        duration: 3000, // 3 秒後自動關閉
       });
     },
     onError: (error: Error) => {

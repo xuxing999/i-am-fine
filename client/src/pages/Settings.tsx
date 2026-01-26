@@ -63,6 +63,7 @@ export default function Settings() {
       toast({
         title: "設定已儲存",
         description: "您的家人聯絡資訊已成功更新。",
+        duration: 3000, // 3 秒後自動關閉
       });
       setLocation("/");
     },

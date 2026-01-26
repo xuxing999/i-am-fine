@@ -170,6 +170,7 @@ export default function Dashboard() {
       toast({
         title: "連結已複製",
         description: `連結：${url}`,
+        duration: 3000, // 3 秒後自動關閉
       });
     }).catch((err) => {
       console.error('[Dashboard] Failed to copy URL:', err);
@@ -192,7 +193,8 @@ export default function Dashboard() {
       toast({
         title: "安裝成功",
         description: "應用程式已加入您的裝置",
-        className: "bg-green-100 border-green-500 text-green-900"
+        className: "bg-green-100 border-green-500 text-green-900",
+        duration: 3000, // 3 秒後自動關閉
       });
     }
   };
@@ -329,6 +331,7 @@ export default function Dashboard() {
                   toast({
                     title: "溫馨提示",
                     description: "請先到設定頁面填寫家人的聯絡電話喔！",
+                    duration: 3000, // 3 秒後自動關閉
                   });
                 }
               }}
@@ -350,6 +353,7 @@ export default function Dashboard() {
                   toast({
                     title: "溫馨提示",
                     description: "請先到設定頁面填寫家人的聯絡電話喔！",
+                    duration: 3000, // 3 秒後自動關閉
                   });
                 }
               }}

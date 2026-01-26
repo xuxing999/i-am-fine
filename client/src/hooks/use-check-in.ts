@@ -31,7 +31,8 @@ export function useCheckIn() {
       toast({
         title: "已報平安！",
         description: "家人可以放心了",
-        className: "bg-green-100 border-green-500 text-green-900"
+        className: "bg-green-100 border-green-500 text-green-900",
+        duration: 3000, // 3 秒後自動關閉
       });
     },
     onError: (error: Error) => {
