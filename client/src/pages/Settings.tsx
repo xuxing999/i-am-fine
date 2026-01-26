@@ -80,24 +80,24 @@ export default function Settings() {
     <div className="min-h-screen bg-white">
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-6 flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setLocation("/")}
-            className="rounded-full"
+            className="rounded-full hover:bg-gray-100"
           >
-            <ArrowLeft className="h-8 w-8" />
+            <ArrowLeft className="h-7 w-7" />
           </Button>
-          <h1 className="text-3xl font-bold text-gray-800">設定家人電話</h1>
+          <h1 className="text-3xl font-black text-gray-900">設定家人電話</h1>
         </div>
       </header>
 
       <main className="max-w-md mx-auto px-6 pt-10 pb-20 space-y-10">
         {/* 閾值設定區塊 */}
         <div className="space-y-6">
-          <div className="flex items-center gap-3 border-b-2 border-green-100 pb-2">
-            <Clock className="h-8 w-8 text-green-600" />
-            <h2 className="text-2xl font-black text-green-600">報平安間隔設定</h2>
+          <div className="flex items-center gap-3 border-b-2 border-green-200 pb-3">
+            <Clock className="h-7 w-7 text-green-600" />
+            <h2 className="text-2xl font-black text-green-700">報平安間隔設定</h2>
           </div>
 
           {/* iOS 風格 Segmented Control */}
@@ -151,15 +151,15 @@ export default function Settings() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-10">
             <div className="space-y-6">
-              <h2 className="text-2xl font-black text-blue-600 border-b-2 border-blue-100 pb-2">主要聯絡人</h2>
+              <h2 className="text-2xl font-black text-blue-700 border-b-2 border-blue-200 pb-3">主要聯絡人</h2>
               <FormField
                 control={form.control}
                 name="contact1Name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xl font-bold">姓名（如：兒子、大女兒）</FormLabel>
+                    <FormLabel className="text-lg font-bold text-gray-700">姓名（如：兒子、大女兒）</FormLabel>
                     <FormControl>
-                      <Input {...field} className="text-xl py-6 rounded-2xl border-2 focus:ring-4" placeholder="請輸入姓名" />
+                      <Input {...field} className="text-lg py-6 rounded-2xl border-2 focus:ring-4 focus:ring-blue-200" placeholder="請輸入姓名" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -170,9 +170,9 @@ export default function Settings() {
                 name="contact1Phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xl font-bold">電話號碼</FormLabel>
+                    <FormLabel className="text-lg font-bold text-gray-700">電話號碼</FormLabel>
                     <FormControl>
-                      <Input {...field} type="tel" className="text-xl py-6 rounded-2xl border-2 focus:ring-4" placeholder="09xxxxxxxx" />
+                      <Input {...field} type="tel" className="text-lg py-6 rounded-2xl border-2 focus:ring-4 focus:ring-blue-200" placeholder="09xxxxxxxx" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -181,15 +181,15 @@ export default function Settings() {
             </div>
 
             <div className="space-y-6">
-              <h2 className="text-2xl font-black text-purple-600 border-b-2 border-purple-100 pb-2">備用聯絡人（選填）</h2>
+              <h2 className="text-2xl font-black text-purple-700 border-b-2 border-purple-200 pb-3">備用聯絡人（選填）</h2>
               <FormField
                 control={form.control}
                 name="contact2Name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xl font-bold">姓名</FormLabel>
+                    <FormLabel className="text-lg font-bold text-gray-700">姓名</FormLabel>
                     <FormControl>
-                      <Input {...field} className="text-xl py-6 rounded-2xl border-2 focus:ring-4" placeholder="請輸入姓名" />
+                      <Input {...field} className="text-lg py-6 rounded-2xl border-2 focus:ring-4 focus:ring-blue-200" placeholder="請輸入姓名" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -200,9 +200,9 @@ export default function Settings() {
                 name="contact2Phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xl font-bold">電話號碼</FormLabel>
+                    <FormLabel className="text-lg font-bold text-gray-700">電話號碼</FormLabel>
                     <FormControl>
-                      <Input {...field} type="tel" className="text-xl py-6 rounded-2xl border-2 focus:ring-4" placeholder="09xxxxxxxx" />
+                      <Input {...field} type="tel" className="text-lg py-6 rounded-2xl border-2 focus:ring-4 focus:ring-blue-200" placeholder="09xxxxxxxx" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -210,15 +210,15 @@ export default function Settings() {
               />
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full py-8 text-2xl font-black rounded-3xl shadow-xl hover:shadow-2xl transition-all"
+            <Button
+              type="submit"
+              className="w-full py-8 text-2xl font-black rounded-3xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3"
               disabled={mutation.isPending}
             >
               {mutation.isPending ? (
-                <Loader2 className="mr-2 h-8 w-8 animate-spin" />
+                <Loader2 className="h-7 w-7 animate-spin" />
               ) : (
-                <Save className="mr-2 h-8 w-8" />
+                <Save className="h-7 w-7" />
               )}
               儲存設定
             </Button>

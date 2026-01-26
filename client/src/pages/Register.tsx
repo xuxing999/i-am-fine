@@ -35,17 +35,17 @@ export default function Register() {
       >
         <div className="text-center border-b pb-6">
           <div className="mx-auto h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-            <UserPlus className="h-8 w-8 text-blue-600" />
+            <UserPlus className="h-10 w-10 text-blue-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">註冊新帳號</h1>
-          <p className="mt-2 text-lg text-gray-600">建立您的平安守護檔案</p>
+          <h1 className="text-3xl font-black text-gray-900">註冊新帳號</h1>
+          <p className="mt-2 text-lg font-medium text-gray-600">建立您的平安守護檔案</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* Account Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <User className="w-5 h-5" /> 帳號資訊
+            <h3 className="text-xl font-black text-gray-900 flex items-center gap-2">
+              <User className="w-5 h-5 flex-shrink-0" /> 帳號資訊
             </h3>
             
             <div className="grid grid-cols-1 gap-4">
@@ -85,8 +85,8 @@ export default function Register() {
           </div>
 
           <div className="border-t pt-6 space-y-4">
-            <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <Phone className="w-5 h-5" /> 緊急聯絡人
+            <h3 className="text-xl font-black text-gray-900 flex items-center gap-2">
+              <Phone className="w-5 h-5 flex-shrink-0" /> 緊急聯絡人
             </h3>
             
             <div className="bg-blue-50 p-4 rounded-xl space-y-4">
@@ -129,13 +129,20 @@ export default function Register() {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-xl bg-primary px-6 py-4 text-xl font-bold text-white shadow-lg hover:bg-primary/90 focus:ring-4 focus:ring-primary/30 disabled:opacity-70 transition-all"
+            className="w-full rounded-xl bg-primary px-6 py-4 text-xl font-black text-white shadow-lg hover:bg-primary/90 focus:ring-4 focus:ring-primary/30 disabled:opacity-70 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            {isPending ? <Loader2 className="mx-auto h-6 w-6 animate-spin" /> : "完成註冊"}
+            {isPending ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>註冊中...</span>
+              </>
+            ) : (
+              "完成註冊"
+            )}
           </button>
 
           <div className="text-center">
-            <Link href="/login" className="text-gray-600 hover:text-primary font-medium">
+            <Link href="/login" className="text-base text-gray-600 hover:text-primary font-medium hover:underline transition-colors">
               已有帳號？返回登入
             </Link>
           </div>

@@ -35,10 +35,10 @@ export default function Login() {
           <div className="mx-auto h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
             <ShieldCheck className="h-12 w-12 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-3xl font-black tracking-tight text-gray-900">
             平安守護
           </h1>
-          <p className="mt-2 text-lg text-gray-600">
+          <p className="mt-2 text-lg font-medium text-gray-600">
             歡迎回來，請登入您的帳號
           </p>
         </div>
@@ -83,19 +83,22 @@ export default function Login() {
           <button
             type="submit"
             disabled={isPending}
-            className="group relative flex w-full justify-center rounded-xl bg-primary px-4 py-4 text-xl font-bold text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-70 shadow-lg shadow-primary/30 transition-all active:scale-[0.98]"
+            className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-4 text-xl font-black text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-70 shadow-lg shadow-primary/30 transition-all active:scale-[0.98]"
           >
             {isPending ? (
-              <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>登入中...</span>
+              </>
             ) : (
               "登入 (Login)"
             )}
           </button>
 
           <div className="text-center mt-4">
-            <p className="text-gray-600">
+            <p className="text-base text-gray-600">
               還沒有帳號嗎？{" "}
-              <Link href="/register" className="font-bold text-primary hover:text-primary/80 hover:underline">
+              <Link href="/register" className="font-bold text-primary hover:text-primary/80 hover:underline transition-colors">
                 立即註冊
               </Link>
             </p>
