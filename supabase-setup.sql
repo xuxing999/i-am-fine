@@ -35,6 +35,20 @@ ON users FOR INSERT
 WITH CHECK (auth.uid() = id);
 
 -- =====================================================
+-- Enable Realtime for instant updates
+-- =====================================================
+
+-- Enable REPLICA IDENTITY for Realtime to track changes
+ALTER TABLE users REPLICA IDENTITY FULL;
+
+-- Enable Realtime for the users table
+-- Note: You also need to enable Realtime in the Supabase Dashboard:
+-- 1. Go to Database > Replication
+-- 2. Enable "users" table in the publication list
+-- 3. Or run the following command in SQL Editor:
+ALTER PUBLICATION supabase_realtime ADD TABLE users;
+
+-- =====================================================
 -- IMPORTANT: After running this SQL, you need to:
 -- 1. Get your Supabase project URL and ANON key from:
 --    https://supabase.com/dashboard/project/kpduuujmcsytteyegggx/settings/api
@@ -44,4 +58,8 @@ WITH CHECK (auth.uid() = id);
 -- 3. Add the same variables to Vercel environment variables:
 --    vercel env add VITE_SUPABASE_URL
 --    vercel env add VITE_SUPABASE_ANON_KEY
+-- 4. Enable Realtime in Supabase Dashboard:
+--    - Go to Database > Replication
+--    - Find "users" table and toggle it ON
+--    - Or ensure the ALTER PUBLICATION command above succeeded
 -- =====================================================

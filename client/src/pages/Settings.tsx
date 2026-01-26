@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Clock } from "lucide-react";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
+import { useUpdateThreshold, THRESHOLD_OPTIONS, THRESHOLD_LABELS, type ThresholdValue } from "@/hooks/use-threshold-settings";
 
 const settingsSchema = z.object({
   contact1Name: z.string().min(1, "請輸入聯絡人姓名"),
@@ -25,6 +26,10 @@ export default function Settings() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const updateThreshold = useUpdateThreshold();
+
+  // 當前閾值（從用戶資料讀取，預設 24 小時）
+  const currentThreshold = (user?.timeoutThreshold || THRESHOLD_OPTIONS.FULL_DAY) as ThresholdValue;
 
   const form = useForm<SettingsForm>({
     resolver: zodResolver(settingsSchema),
@@ -86,7 +91,62 @@ export default function Settings() {
         </div>
       </header>
 
-      <main className="max-w-md mx-auto px-6 pt-10 pb-20">
+      <main className="max-w-md mx-auto px-6 pt-10 pb-20 space-y-10">
+        {/* 閾值設定區塊 */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 border-b-2 border-green-100 pb-2">
+            <Clock className="h-8 w-8 text-green-600" />
+            <h2 className="text-2xl font-black text-green-600">報平安間隔設定</h2>
+          </div>
+
+          {/* iOS 風格 Segmented Control */}
+          <div className="bg-gray-100 p-2 rounded-2xl">
+            <div className="grid grid-cols-3 gap-2">
+              {Object.entries(THRESHOLD_OPTIONS).map(([key, value]) => {
+                const isSelected = currentThreshold === value;
+                const info = THRESHOLD_LABELS[value];
+
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => updateThreshold.mutate(value)}
+                    disabled={updateThreshold.isPending}
+                    className={`
+                      relative py-4 px-3 rounded-xl font-bold transition-all duration-200
+                      ${isSelected
+                        ? 'bg-white shadow-md text-green-700 scale-[1.02]'
+                        : 'bg-transparent text-gray-600 hover:bg-gray-200/50'
+                      }
+                      ${updateThreshold.isPending ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}
+                    `}
+                  >
+                    <div className="space-y-1">
+                      <div className="text-sm leading-tight">
+                        {info.label.split(' ')[0]}
+                        <br />
+                        <span className="text-lg font-black">
+                          {info.label.split(' ')[1]}
+                        </span>
+                      </div>
+                    </div>
+                    {isSelected && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 當前選中模式的詳細說明 */}
+          <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-4">
+            <p className="text-green-800 text-center font-medium">
+              {THRESHOLD_LABELS[currentThreshold].description}
+            </p>
+          </div>
+        </div>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-10">
             <div className="space-y-6">

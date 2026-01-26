@@ -14,6 +14,7 @@ export type User = {
   contact2Phone?: string | null;
   lastCheckInAt?: Date | null;
   createdAt?: Date | null;
+  timeoutThreshold?: number; // 報平安超時閾值（秒）
 };
 
 // Insert User type for registration
@@ -38,6 +39,7 @@ type DbUser = {
   contact2_phone: string | null;
   last_check_in_at: string | null;
   created_at: string | null;
+  timeout_threshold: number;
 };
 
 // Convert database user (snake_case) to frontend user (camelCase)
@@ -52,6 +54,7 @@ function dbUserToUser(dbUser: DbUser): User {
     contact2Phone: dbUser.contact2_phone,
     lastCheckInAt: dbUser.last_check_in_at ? new Date(dbUser.last_check_in_at) : null,
     createdAt: dbUser.created_at ? new Date(dbUser.created_at) : null,
+    timeoutThreshold: dbUser.timeout_threshold,
   };
 }
 
@@ -70,23 +73,23 @@ export function useUser() {
       if (!session) return null;
 
       // Get user profile from database
-      // Try with created_at first, fallback if column doesn't exist
+      // Try with timeout_threshold and created_at first, fallback if columns don't exist
       let { data, error } = await supabase
         .from('users')
-        .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in_at, created_at')
+        .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in_at, created_at, timeout_threshold')
         .eq('id', session.user.id)
         .single();
 
-      // If created_at column doesn't exist, retry without it
-      if (error && error.message?.includes('column') && error.message?.includes('created_at')) {
-        console.warn('[useUser] created_at column not found, falling back to query without it');
+      // If timeout_threshold or created_at column doesn't exist, retry without them
+      if (error && error.message?.includes('column')) {
+        console.warn('[useUser] Some columns not found, falling back to basic query');
         const fallback = await supabase
           .from('users')
           .select('id, username, display_name, contact1_name, contact1_phone, contact2_name, contact2_phone, last_check_in_at')
           .eq('id', session.user.id)
           .single();
 
-        data = fallback.data;
+        data = fallback.data ? { ...fallback.data, timeout_threshold: 86400 } : fallback.data; // 預設 24 小時
         error = fallback.error;
       }
 
@@ -312,6 +315,7 @@ export function useRegister() {
           contact1_phone: userData.contact1Phone || null,
           contact2_name: userData.contact2Name || null,
           contact2_phone: userData.contact2Phone || null,
+          timeout_threshold: 86400, // 預設 24 小時
         }, {
           onConflict: 'id',
           ignoreDuplicates: false

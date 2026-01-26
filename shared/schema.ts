@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -7,7 +7,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   displayName: text("display_name").notNull(),
-  
+
   // Emergency Contacts
   contact1Name: text("contact1_name"),
   contact1Phone: text("contact1_phone"),
@@ -17,6 +17,9 @@ export const users = pgTable("users", {
   // Status
   lastCheckInAt: timestamp("last_check_in_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
+
+  // Threshold Settings
+  timeoutThreshold: integer("timeout_threshold").notNull().default(86400), // 預設 24 小時
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({ 

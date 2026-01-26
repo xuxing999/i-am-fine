@@ -2,67 +2,60 @@ import { usePublicStatus } from "@/hooks/use-check-in";
 import { Loader2, ShieldCheck, ShieldAlert, Phone, Clock, ShieldQuestion, ExternalLink } from "lucide-react";
 import { useRoute, Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { format } from "date-fns";
 import { zhTW } from "date-fns/locale";
-import { CHECKIN_TIMEOUT_SECONDS } from "@/config/constants";
 
 export default function PublicStatus() {
   const [match, params] = useRoute("/status/:username");
   const username = params?.username || "";
 
-  console.log('[PublicStatus] Route match:', match);
-  console.log('[PublicStatus] Params:', params);
-  console.log('[PublicStatus] Username from params:', username);
+  console.log('[PublicStatus] Component rendered');
 
   const { data: status, isLoading, error } = usePublicStatus(username);
-  const [localIsSafe, setLocalIsSafe] = useState(true);
-  const queryClient = useQueryClient();
+  const [currentTime, setCurrentTime] = useState(Date.now());
+  const animationFrameRef = useRef<number>();
 
-  // 每秒進行一次本地精準比對，確保倒數精確同步
+  // 使用 requestAnimationFrame 進行高效的時間更新（約 60fps，但只在需要時觸發 re-render）
   useEffect(() => {
-    const updateSafeStatus = () => {
-      if (!status?.lastCheckInAt) {
-        setLocalIsSafe(false);
-        return;
+    if (!status?.lastCheckInAt) return;
+
+    let lastUpdate = Date.now();
+
+    const updateTime = () => {
+      const now = Date.now();
+
+      // 只在每秒更新一次（減少不必要的 re-render）
+      if (now - lastUpdate >= 1000) {
+        setCurrentTime(now);
+        lastUpdate = now;
       }
 
-      const lastCheckIn = new Date(status.lastCheckInAt).getTime();
-      const now = new Date().getTime();
-      const secondsPassed = (now - lastCheckIn) / 1000;
-      const isSafe = secondsPassed < CHECKIN_TIMEOUT_SECONDS;
-
-      console.log(`[PublicStatus] Safe status check: ${secondsPassed.toFixed(1)}s passed, isSafe=${isSafe}`);
-      setLocalIsSafe(isSafe);
+      animationFrameRef.current = requestAnimationFrame(updateTime);
     };
 
-    // 立即執行一次
-    updateSafeStatus();
+    animationFrameRef.current = requestAnimationFrame(updateTime);
 
-    // 每秒更新一次狀態
-    const timer = setInterval(updateSafeStatus, 1000);
-
-    return () => clearInterval(timer);
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
   }, [status?.lastCheckInAt]);
 
-  // 同步 API 回傳的狀態
-  useEffect(() => {
-    if (status) {
-      setLocalIsSafe(status.isSafe);
-    }
-  }, [status]);
+  // 使用 useMemo 計算 isSafe 狀態，使用動態閾值
+  const isSafe = useMemo(() => {
+    if (!status?.lastCheckInAt) return false;
 
-  // 每 5 秒自動重新獲取數據 (後台輪詢作為保險)
-  useEffect(() => {
-    if (!username) return;
+    const lastCheckIn = new Date(status.lastCheckInAt).getTime();
+    const secondsPassed = (currentTime - lastCheckIn) / 1000;
+    const userThreshold = status.timeoutThreshold || 86400; // 使用用戶的動態閾值
+    const safe = secondsPassed < userThreshold;
 
-    const interval = setInterval(() => {
-      queryClient.invalidateQueries({ queryKey: ['public-status', username] });
-    }, 5000);
+    console.log(`[PublicStatus] Safe status: ${secondsPassed.toFixed(1)}s passed, threshold=${userThreshold}s, isSafe=${safe}`);
 
-    return () => clearInterval(interval);
-  }, [username, queryClient]);
+    return safe;
+  }, [status?.lastCheckInAt, status?.timeoutThreshold, currentTime]);
 
   if (isLoading) {
     return (
@@ -84,8 +77,6 @@ export default function PublicStatus() {
       </div>
     );
   }
-
-  const isSafe = localIsSafe;
 
   return (
     <div className={`min-h-screen transition-colors duration-1000 ${isSafe ? "bg-green-50" : "bg-red-50"}`}>
