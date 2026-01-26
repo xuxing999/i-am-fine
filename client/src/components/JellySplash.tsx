@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
+import { useUser } from '@/hooks/use-auth';
 
 /**
  * JellySplash - 專業級果凍感啟動動畫
@@ -9,27 +10,42 @@ import { ShieldCheck } from 'lucide-react';
  * - cubic-bezier(0.68, -0.55, 0.27, 1.55) 彈性曲線
  * - GPU 加速 (transform + opacity)
  * - 自動防止長輩誤觸（動畫期間禁用底層互動）
+ * - 等待 Auth 初始化完成，防止閃爍
  */
 export function JellySplash() {
   const [isVisible, setIsVisible] = useState(true);
   const [isExpanding, setIsExpanding] = useState(false);
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const { isLoading: isAuthLoading } = useUser();
 
+  // 確保最小顯示時間（防止動畫太快消失）
   useEffect(() => {
-    // 延遲 50ms 開始擴張動畫（讓初始狀態渲染完成）
-    const expandTimer = setTimeout(() => {
-      setIsExpanding(true);
-    }, 50);
+    const minTimer = setTimeout(() => {
+      setMinTimeElapsed(true);
+    }, 500); // 最少顯示 500ms，讓動畫有足夠時間呈現
 
-    // 800ms 後完全隱藏（動畫 750ms + 50ms buffer）
-    const hideTimer = setTimeout(() => {
-      setIsVisible(false);
-    }, 800);
-
-    return () => {
-      clearTimeout(expandTimer);
-      clearTimeout(hideTimer);
-    };
+    return () => clearTimeout(minTimer);
   }, []);
+
+  // 當 Auth 載入完成且最小時間已過，開始消失動畫
+  useEffect(() => {
+    if (!isAuthLoading && minTimeElapsed) {
+      // 延遲 50ms 開始擴張動畫（讓 Auth 完成的狀態穩定）
+      const expandTimer = setTimeout(() => {
+        setIsExpanding(true);
+      }, 50);
+
+      // 800ms 後完全隱藏（動畫 750ms + 50ms buffer）
+      const hideTimer = setTimeout(() => {
+        setIsVisible(false);
+      }, 800);
+
+      return () => {
+        clearTimeout(expandTimer);
+        clearTimeout(hideTimer);
+      };
+    }
+  }, [isAuthLoading, minTimeElapsed]);
 
   // 完全移除元素，避免佔用 DOM
   if (!isVisible) {

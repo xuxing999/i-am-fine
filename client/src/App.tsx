@@ -10,7 +10,6 @@ import Dashboard from "@/pages/Dashboard";
 import PublicStatus from "@/pages/PublicStatus";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/not-found";
-import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
 // Protected Route Wrapper
@@ -24,12 +23,10 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
     }
   }, [user, isLoading, setLocation]);
 
+  // 移除重複的 Loader，JellySplash 已經處理初始載入
+  // 直接返回 null 等待 redirect，避免閃爍
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
+    return null;
   }
 
   return user ? <Component /> : null;
