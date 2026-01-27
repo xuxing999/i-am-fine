@@ -161,7 +161,7 @@ export default function PublicStatus() {
           >
             <div className="flex items-center gap-4">
               <div className={`w-14 h-14 rounded-full flex items-center justify-center ${isSafe ? "bg-green-100" : "bg-white/20"}`}>
-                <Phone className="w-7 h-7" />
+                <Phone className="w-8 h-8" />
               </div>
               <span className="text-2xl font-black">撥打電話給 {status.displayName}</span>
             </div>

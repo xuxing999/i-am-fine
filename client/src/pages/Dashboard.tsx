@@ -205,7 +205,7 @@ export default function Dashboard() {
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-6 py-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <ShieldCheck className="h-9 w-9 text-primary" />
+            <ShieldCheck className="h-10 w-10 text-primary" />
             <h1 className="text-3xl font-black text-gray-900">{user.displayName}</h1>
           </div>
           <div className="flex gap-2">
@@ -215,7 +215,7 @@ export default function Dashboard() {
                   className="min-w-[44px] min-h-[44px] p-3 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors active:scale-95"
                   aria-label="開啟設定選單"
                 >
-                  <Settings className="h-7 w-7" />
+                  <Settings className="h-8 w-8" />
                 </button>
               </DrawerTrigger>
               <DrawerContent>
@@ -234,7 +234,7 @@ export default function Dashboard() {
                         setLocation("/settings");
                       }}
                     >
-                      <Settings className="h-6 w-6 flex-shrink-0" /> <span>設定家人電話</span>
+                      <Settings className="h-7 w-7 flex-shrink-0" /> <span>設定家人電話</span>
                     </Button>
                     <Button
                       variant="outline"
@@ -245,7 +245,7 @@ export default function Dashboard() {
                         handleShare();
                       }}
                     >
-                      <Share2 className="h-6 w-6 flex-shrink-0" /> <span>分享狀態給家人</span>
+                      <Share2 className="h-7 w-7 flex-shrink-0" /> <span>分享狀態給家人</span>
                     </Button>
                     <Button
                       variant="ghost"
@@ -256,7 +256,7 @@ export default function Dashboard() {
                         logout();
                       }}
                     >
-                      <LogOut className="h-6 w-6 flex-shrink-0" /> <span>登出</span>
+                      <LogOut className="h-7 w-7 flex-shrink-0" /> <span>登出</span>
                     </Button>
                   </div>
                   <DrawerFooter className="px-0 pt-4">
@@ -323,7 +323,7 @@ export default function Dashboard() {
         <div className="space-y-6">
           <h3 className="text-2xl font-black text-gray-800 text-center">找家人聊聊</h3>
           <div className="grid grid-cols-1 gap-4">
-            <a 
+            <a
               href={user.contact1Phone ? `tel:${user.contact1Phone}` : "#"}
               onClick={(e) => {
                 if (!user.contact1Phone) {
@@ -339,13 +339,13 @@ export default function Dashboard() {
             >
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                  <Phone className="w-7 h-7" />
+                  <Phone className="w-8 h-8" />
                 </div>
                 <span className="text-3xl font-bold text-gray-900">{user.contact1Name || "聯絡人 1"}</span>
               </div>
               <span className="text-xl font-medium text-gray-400">撥打電話</span>
             </a>
-            <a 
+            <a
               href={user.contact2Phone ? `tel:${user.contact2Phone}` : "#"}
               onClick={(e) => {
                 if (!user.contact2Phone) {
@@ -361,7 +361,7 @@ export default function Dashboard() {
             >
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                  <Phone className="w-7 h-7" />
+                  <Phone className="w-8 h-8" />
                 </div>
                 <span className="text-3xl font-bold text-gray-900">{user.contact2Name || "聯絡人 2"}</span>
               </div>
@@ -374,7 +374,7 @@ export default function Dashboard() {
         {!isInstalled && (
           <div className="bg-green-50 p-8 rounded-3xl border-2 border-green-100 space-y-4">
             <div className="flex items-center gap-3 text-green-700">
-              <Download className="w-7 h-7" />
+              <Download className="w-8 h-8" />
               <h3 className="text-2xl font-black">把應用放在桌面</h3>
             </div>
 
@@ -388,7 +388,7 @@ export default function Dashboard() {
                   onClick={handlePWAInstall}
                   className="w-full py-6 px-6 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-2xl font-black text-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
                 >
-                  <Download className="w-6 h-6" />
+                  <Download className="w-8 h-8" />
                   <span>立即安裝到桌面</span>
                 </button>
               </div>

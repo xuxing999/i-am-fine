@@ -87,7 +87,7 @@ export default function Login() {
           >
             {isPending ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-6 w-6 animate-spin" />
                 <span>登入中...</span>
               </>
             ) : (

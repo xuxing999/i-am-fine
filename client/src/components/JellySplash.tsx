@@ -7,7 +7,7 @@ import { useUser } from '@/hooks/use-auth';
  *
  * 特點：
  * - 使用 #00c16e 品牌綠色
- * - cubic-bezier(0.68, -0.55, 0.27, 1.55) 彈性曲線
+ * - cubic-bezier(0.34, 1.56, 0.64, 1) 彈性曲線（Material Design Easing）
  * - GPU 加速 (transform + opacity)
  * - 自動防止長輩誤觸（動畫期間禁用底層互動）
  * - 等待 Auth 初始化完成，防止閃爍
@@ -85,7 +85,7 @@ export function JellySplash() {
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: transform 750ms cubic-bezier(0.68, -0.55, 0.27, 1.55),
+          transition: transform 750ms cubic-bezier(0.34, 1.56, 0.64, 1),
                       opacity 750ms ease-out;
           will-change: transform, opacity;
           backface-visibility: hidden;

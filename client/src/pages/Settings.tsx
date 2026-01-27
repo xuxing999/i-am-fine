@@ -84,9 +84,9 @@ export default function Settings() {
             variant="ghost"
             size="icon"
             onClick={() => setLocation("/")}
-            className="rounded-full hover:bg-gray-100"
+            className="rounded-full hover:bg-gray-100 min-w-[44px] min-h-[44px]"
           >
-            <ArrowLeft className="h-7 w-7" />
+            <ArrowLeft className="h-8 w-8" />
           </Button>
           <h1 className="text-3xl font-black text-gray-900">設定家人電話</h1>
         </div>
@@ -96,7 +96,7 @@ export default function Settings() {
         {/* 閾值設定區塊 */}
         <div className="space-y-6">
           <div className="flex items-center gap-3 border-b-2 border-green-200 pb-3">
-            <Clock className="h-7 w-7 text-green-600" />
+            <Clock className="h-8 w-8 text-green-600" />
             <h2 className="text-2xl font-black text-green-700">報平安間隔設定</h2>
           </div>
 
@@ -216,9 +216,9 @@ export default function Settings() {
               disabled={mutation.isPending}
             >
               {mutation.isPending ? (
-                <Loader2 className="h-7 w-7 animate-spin" />
+                <Loader2 className="h-9 w-9 animate-spin" />
               ) : (
-                <Save className="h-7 w-7" />
+                <Save className="h-9 w-9" />
               )}
               儲存設定
             </Button>

@@ -45,7 +45,7 @@ export default function Register() {
           {/* Account Info */}
           <div className="space-y-4">
             <h3 className="text-xl font-black text-gray-900 flex items-center gap-2">
-              <User className="w-5 h-5 flex-shrink-0" /> 帳號資訊
+              <User className="w-6 h-6 flex-shrink-0" /> 帳號資訊
             </h3>
             
             <div className="grid grid-cols-1 gap-4">
@@ -86,7 +86,7 @@ export default function Register() {
 
           <div className="border-t pt-6 space-y-4">
             <h3 className="text-xl font-black text-gray-900 flex items-center gap-2">
-              <Phone className="w-5 h-5 flex-shrink-0" /> 緊急聯絡人
+              <Phone className="w-6 h-6 flex-shrink-0" /> 緊急聯絡人
             </h3>
             
             <div className="bg-blue-50 p-4 rounded-xl space-y-4">
@@ -133,7 +133,7 @@ export default function Register() {
           >
             {isPending ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-6 w-6 animate-spin" />
                 <span>註冊中...</span>
               </>
             ) : (
