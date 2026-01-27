@@ -20,6 +20,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { PWAInstallGuide } from "@/components/PWAInstallGuide";
 
 export default function Dashboard() {
   const { data: user, isLoading: isLoadingUser } = useUser();
@@ -201,6 +202,18 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-white pb-32">
+      {/* 智能 PWA 安裝引導 */}
+      <PWAInstallGuide
+        onInstall={() => {
+          toast({
+            title: "安裝成功",
+            description: "應用程式已加入您的裝置",
+            className: "bg-green-100 border-green-500 text-green-900",
+            duration: 3000,
+          });
+        }}
+      />
+
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-6 py-6 flex justify-between items-center">
